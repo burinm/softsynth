@@ -1,0 +1,13 @@
+Invented Here License v1.0
+--------------------------
+
+Nobody can own ideas. They belong to the world.
+
+This license states that nobody can own the ideas, code and algorithms
+in this software. This software is considered prior art and therefore
+not patentable.
+
+Derivative works of this software must contain this license, credit
+to all authors and a list of changes made.
+
+ABSOLUTELY NO WARRANTY
