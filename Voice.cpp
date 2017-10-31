@@ -28,8 +28,6 @@ void Voice::step() {
     }
 
     envelope.step();
-
-
 }
 
 void Voice::startNote(uint8_t midinote) {

@@ -6,7 +6,7 @@
 
 ### PROJECT_DIR
 ### This is the path to where you have created/cloned your project
-PROJECT_DIR       = /home/burin/src/8ss
+PROJECT_DIR       = /home/burin/src/softsynth
 
 ### ARDMK_DIR
 ### Path to the Arduino-Makefile directory.
@@ -21,7 +21,7 @@ ARDUINO_DIR       = /home/burin/arduino
 
 ### USER_LIB_PATH
 ### Path to where the your project's libraries are stored.
-USER_LIB_PATH    :=  $(PROJECT_DIR)/lib
+##USER_LIB_PATH    :=  $(PROJECT_DIR)/lib
 
 ### BOARD_TAG
 ### It must be set to the board you are currently using. (i.e uno, mega2560, etc.)
@@ -68,6 +68,11 @@ CURRENT_DIR       = $(shell basename $(CURDIR))
 ### OBJDIR
 ### This is where you put the binaries you just compile using 'make'
 OBJDIR            = $(PROJECT_DIR)/bin/$(BOARD_TAG)/$(CURRENT_DIR)
+
+##USER_LIB_PATH    := /home/burin/src/drivers/src/
+##ARDUINO_LIBS     += mylib/circbuf_tiny.c
+
+##SOURCES +=  circbuf_tiny.c
 
 ### Do not touch - the path to Arduino.mk, inside the ARDMK_DIR
 include $(ARDMK_DIR)/Arduino.mk

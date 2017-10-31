@@ -14,6 +14,8 @@
 using namespace SoftSynth;
 
 Voice voice0;
+Voice voice1;
+
 envelope_t flute_instrument = {
 
     .attack_ticks =     16,
@@ -29,14 +31,17 @@ envelope_t flute_instrument = {
 int main() {
 
      voice0.init(t_sin, flute_instrument);
+     voice1.init(t_pulse, flute_instrument);
 
 
     for (;;) {
      static uint16_t synth_clock=0;
         synth_clock++;
         voice0.step();
+        voice1.step();
         uint8_t sample;
         sample = voice0.sample(synth_clock);
+        sample = voice1.sample(synth_clock);
 
     }
 }
