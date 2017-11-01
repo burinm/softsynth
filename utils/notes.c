@@ -9,20 +9,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#define STEPS_IN_OCTAVE 12 
-#define OFFSET_A4_NOTE  (4 * STEPS_IN_OCTAVE)
-#define MIDI_A4_NOTE    57
+#include "notes.h"
+#include "../hardware.h"
 
 static const char* note_names[12] = { "A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"};
 
 int main(int argc, char* argv[]) {
+int phase_mode = 0;
 int table_mode = 0;
 
 
 /* Machine timing */
-const double machine_frequency  = 16E6;
-const double sample_frequency   = 44.1E3;
+const double machine_frequency  = CPU_SPEED;
+const double sample_frequency   = SAMPLE_RATE;
 
 double machine_period = 1 / machine_frequency;
 double timer_ticks_per_sample = machine_frequency / sample_frequency; 
@@ -49,11 +48,15 @@ if (argc > 1) {
 }
 
 if (argc > 2) {
+    if (strcmp("-p", argv[2]) == 0) {
+        phase_mode=1;
+    }
     if (strcmp("-t", argv[2]) == 0) {
         table_mode=1;
     }
 }
     
+
 
 if (table_mode) { printf("/*\n"); }
 
@@ -65,7 +68,8 @@ printf("-------------------------------------------------\n");
 
 if (table_mode) { printf("*/\n\n"); }
 
-if (table_mode) { printf("const uint16_t note_phase_mult_table[128] = {\n    "); }
+if (phase_mode) { printf("const uint16_t note_phase_mult_table[128] = {\n    "); }
+if (table_mode) { printf("const uint16_t note_ticks_table[128] = {\n    "); }
 
 
 int octave;
@@ -90,13 +94,13 @@ for (octave=-1;octave<10;octave++) {
 
             //Phase is 1024 degrees, multiply by 64 to just fit in 2^16 int
             // To find phase, tick_number * phase_multiplier[note] >> 6
-            phase_multiplier = round((1024 * 64)/ticks);
+            phase_multiplier = round((1024 << PHASE_MULT)/ticks);
             phase_multiplier_int = (unsigned int)phase_multiplier;
 
-            if (table_mode) {
+            if (phase_mode || table_mode) {
                 
-                //printf("%5d",ticks_int);
-                printf("%6d",phase_multiplier_int);
+                if (table_mode) { printf("%5d",ticks_int); }
+                if (phase_mode) { printf("%6d",phase_multiplier_int); }
 
                 if (midi_note < 127) { printf(","); }
                 if ((midi_note +1) % 12 == 0) { printf("\n    "); }
@@ -109,7 +113,7 @@ for (octave=-1;octave<10;octave++) {
     }
 }
 
-if (table_mode) { printf("\n};\n"); }
+if (phase_mode || table_mode) { printf("\n};\n"); }
 
 return 0;
 }
