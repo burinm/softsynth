@@ -145,9 +145,10 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     }
 
     /* Initalize Voices */
-    //voices[0].init(t_sin, flute_instrument);
-    voices[0].init(t_triangle, flute_instrument);
-    voices[1].init(t_pulse, flute_instrument2);
+    voices[0].init(t_pulse, flute_instrument);
+    //voices[0].init(t_triangle, flute_instrument);
+    //voices[0].init(t_noise, flute_instrument);
+    voices[1].init(t_sawtooth, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
     voices[2].init(t_pulse, flute_instrument2);
     //voices[3].init(t_noise, flute_instrument2);
@@ -201,10 +202,14 @@ static uint16_t random_number_count = 0;
 
     //Highest two bits set to audio lsb, Lower 2 bits reserved for UART
     // This also leaves debug bits 2-5 alone
-    PORTD |= sample<<6;
+    //PORTD |= sample<<6;
+    mixer <<= 2;
+    PORTD |= (mixer & 0xFC);
+    //PORTD |= (0xfff<<2) & 0xFC;
 
     //Put most significant bits here, so they all change at once
-    PORTB = sample>>2;
+    PORTB = (mixer & 0x3f00) >>8;
+    //PORTB = (0xfff>>6) & (0x3f);
 
     process_midi_messages();                 // 1.2us
 
@@ -229,9 +234,10 @@ error_set(ERROR_MARK);
     mixer += dither_random_table[random_number2];
     #endif
 
-    mixer >>= 2;
+    mixer <<= 2; //Only using 10bits right now
+    //mixer &= (0xfff); //12 bit audio mask
 
-    sample = (uint8_t)(mixer & 0xff);
+    //sample = (uint8_t)(mixer & 0xff);
 }
 
 ISR(USART_RX_vect) {
