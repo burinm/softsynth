@@ -149,9 +149,10 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     //voices[0].init(t_triangle, flute_instrument);
     //voices[0].init(t_noise, flute_instrument);
     voices[1].init(t_sawtooth, flute_instrument2);
-    //voices[2].init(t_sawtooth, flute_instrument2);
-    voices[2].init(t_pulse, flute_instrument2);
-    //voices[3].init(t_noise, flute_instrument2);
+    voices[2].init(t_sawtooth, flute_instrument2);
+
+    //voices[2].init(t_triangle, flute_instrument2);
+    //voices[2].init(t_noise, flute_instrument2);
 
     sei();
 
@@ -283,9 +284,6 @@ inline void process_midi_messages() {
             switch(midi_running_status) {
                 case    MIDI_STATUS_NOTE_ON:
                     if (midi_byte_number == 0) {
-                        #if 1 //TODO: octave down for testing
-                            if (byte_out > 11) { byte_out -=12; }
-                        #endif
                         if(midi_current_channel < MAX_VOICES) {
                             voices[midi_current_channel].startNote(byte_out);
                         }

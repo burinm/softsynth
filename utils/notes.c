@@ -79,7 +79,7 @@ if (table_mode) { printf("const uint16_t note_ticks_table[128] = {\n    "); }
 
 
 int octave;
-for (octave=-1;octave<10;octave++) {
+for (octave=-2;octave<10;octave++) {
     int steps;
 
     for (steps=0;steps<STEPS_IN_OCTAVE;steps++) { //Starting with "A"
@@ -117,7 +117,7 @@ for (octave=-1;octave<10;octave++) {
                 if ((midi_note +1) % 12 == 0) { printf("\n    "); }
 
             } else {
-                printf("[midi %3d] note %3d (%-2s):",midi_note, note_num, note_names[steps]);
+                printf("[midi %3d] note %3d (%-2s%d):",midi_note, note_num, note_names[steps],octave);
                 printf(" %10.3f Hz synth ticks:%5d %7d\n", frequency, ticks_int, phase_multiplier_int);
             }
         }

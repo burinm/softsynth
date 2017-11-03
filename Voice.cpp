@@ -6,7 +6,10 @@
 
 #include "Voice.h"
 #include "utils/notes.h"
-#include "debug.h"
+
+#ifdef ARDUINO
+    #include "debug.h"
+#endif
 
 namespace SoftSynth {
 
