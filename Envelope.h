@@ -59,7 +59,7 @@ class Envelope {
 
     private:
         uint8_t adsr_envelope_level;
-        uint8_t adsr_state;
+        adsr_state_t adsr_state;
 
         envelope_t  adsr_run;      //Running count of envelope parameters
         envelope_t  adsr_reset;    //Reset values for envelope

@@ -24,7 +24,7 @@ extern "C" {
 #include "Voice.h"
 #include "Envelope.h"
 
-inline uint8_t process_midi_messages();
+inline void process_midi_messages();
 
 using namespace SoftSynth;
 
@@ -91,7 +91,7 @@ wdt_disable();
     // set the digital pin as output:  
 
     //8-bit digital sound out
-    DDRD = 0B11111100; //pins 6-7 output, sound lsb, pin2-5 debug, pins 0-1 reserved for UART
+    DDRD = 0B11111110; //pins 6-7 output, sound lsb, pin2-5 debug, pins 0-1 reserved for UART
     //DDRD = 0B11111111;
     PORTD = 0x0;
 
@@ -128,7 +128,7 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     UBRR0H = (uint8_t)(UBRR>>8);
     UBRR0L = (uint8_t)UBRR;
     UCSR0B = (1<<RXEN0) |  /* Enable receive */
-             (1<<TXEN0) |  /*  Enable TX */
+             //(1<<TXEN0) |  /*  Enable TX - Use this pin for debug instead*/ 
              (1<<RXCIE0);  /* Enable RX complete interrupt */
 
     /* Set frame format: 8N1 */
@@ -257,7 +257,7 @@ error_set(ERROR_RECEIVE);
 error_set(ERROR_RECEIVE);
 }
 
-inline uint8_t process_midi_messages() {
+inline void process_midi_messages() {
     /* Critial section, but on Atmel328p, interrupt handler is safe */
     static uint8_t byte_out;
     if (CIRCBUF_TINY_SIZE(midi_buf) > 0)                                            //4.20us

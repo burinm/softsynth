@@ -30,7 +30,7 @@ class Voice {
             //return (uint8_t)(wave_function(phase));
         }
 #endif
-        uint8_t Voice::sample();
+        uint8_t sample();
 
         uint8_t sequencer_flag;
 
