@@ -11,6 +11,7 @@
 
 int main() {
 
+printf("/*\n    Envelope Table, pow(.965,i) * 2^8\n*/\n");
 printf("const uint8_t t_envelope_table[128] = {\n");
 
 //for (int a=0;a<128;a++) {
@@ -37,8 +38,9 @@ for (int i=127;i>=0;i--) {
     if (i>0) { printf(","); }
     if ( (i) % 8 == 0) { printf("\n"); }
 #endif
-//    printf("%d %d\n",i,envelope_int);
-//    printf("%d ",envelope_int);
+
+    //printf("%d %d\n",i,envelope_int);
+//    printf("%d \n",envelope_int);
 
 #if 1
 

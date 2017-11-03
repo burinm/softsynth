@@ -5,10 +5,14 @@
 */
 
 #include "Voice.h"
+#include "utils/notes.h"
+#include "debug.h"
 
 namespace SoftSynth {
 
 void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
+    ticks = 0;
+    phase = 0;
 
     wave_function = f;
 
@@ -20,14 +24,22 @@ void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
 
 void Voice::step() {
 
+    phase = ticks * note_phase_mult_table[current_note];            //3.62us
+    phase = phase >> PHASE_MULT;
+    phase &= 0x3ff;
+
+    //if (ticks == note_ticks_table[current_note] ) { ticks = 0; }
+
     if (sequencer_flag) {
         //if (//TODO:overflow sync
             sequencer_flag = 0;
-            envelope.start();
+            envelope.start();                                       //3.44us
         //}
     }
 
-    envelope.step();
+    envelope.step();                                                //1.92us
+    ticks++;
+
 }
 
 void Voice::startNote(uint8_t midinote) {
@@ -40,19 +52,22 @@ void Voice::stopNote() {
     envelope.setState(ADSR_RELEASE);
 }
 
-uint8_t Voice::sample(uint16_t clock) {
+#if 1
+uint8_t Voice::sample() {
 uint8_t wave;
 uint16_t amplitude;
-uint16_t phase;
 
-    phase = clock * note_phase_mult_table[current_note];
-    phase = phase >> 6;
+    if (envelope.getState() ) {
+        wave = wave_function(phase);                                    //2.4us
+        //amplitude = envelope.apply_envelope(wave);                      //2.4us
+    } else {
+        amplitude = 0;
+    }
 
-    wave = wave_function(phase);
-    amplitude = envelope.apply_envelope(wave);     
-
-return (uint8_t)amplitude;
+//return (uint8_t)amplitude;
+return (wave);
 }
+#endif
 
 
 void Voice::setWaveform(uint8_t (*f)(uint16_t)) {

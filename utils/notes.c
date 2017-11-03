@@ -56,17 +56,23 @@ if (argc > 2) {
     }
 }
     
+if (table_mode | phase_mode) {
+    printf("/*\n");
+    if (table_mode) {
+        printf("    A4 is %10.3f Hz, machine running at %10.3f Hz\n",tuning_a,machine_frequency);
+    }
+    if (phase_mode) {
+        printf("    Formula: round((1024 << %d)/ticks) @%10.3f Hz\n",PHASE_MULT,sample_frequency);
+    }
+} else {
+    printf("We are tuning to A at %10.3f Hz\n", tuning_a);
+    printf("Machine is running at %10.3f Hz\n", machine_frequency);
+    printf("Samples are at        %10.3f Hz\n", sample_frequency);
+    printf("Synth timer (samples) will need %d machine ticks\n",(unsigned int)timer_ticks_per_sample_int);
+    printf("-------------------------------------------------\n");
+}
 
-
-if (table_mode) { printf("/*\n"); }
-
-printf("We are tuning to A at %10.3f Hz\n", tuning_a);
-printf("Machine is running at %10.3f Hz\n", machine_frequency);
-printf("Samples are at        %10.3f Hz\n", sample_frequency);
-printf("Synth timer (samples) will need %d machine ticks\n",(unsigned int)timer_ticks_per_sample_int);
-printf("-------------------------------------------------\n");
-
-if (table_mode) { printf("*/\n\n"); }
+if (table_mode | phase_mode) { printf("*/\n\n"); }
 
 if (phase_mode) { printf("const uint16_t note_phase_mult_table[128] = {\n    "); }
 if (table_mode) { printf("const uint16_t note_ticks_table[128] = {\n    "); }
@@ -96,6 +102,11 @@ for (octave=-1;octave<10;octave++) {
             // To find phase, tick_number * phase_multiplier[note] >> 6
             phase_multiplier = round((1024 << PHASE_MULT)/ticks);
             phase_multiplier_int = (unsigned int)phase_multiplier;
+#if 1
+            if (phase_multiplier_int > (1<<15)) {
+                phase_multiplier_int = 0;
+            }
+#endif
 
             if (phase_mode || table_mode) {
                 

@@ -45,7 +45,8 @@ void Envelope::start() {
     adsr_envelope_level = 0;
     adsr_state = ADSR_ATTACK;
 
-    //adsr_run = adsr_reset;
+    //adsr_run = adsr_reset; //5us!!
+#if 1
     adsr_run.attack_ticks = adsr_reset.attack_ticks;
     adsr_run.attack_count = adsr_reset.attack_count;
 
@@ -57,6 +58,7 @@ void Envelope::start() {
 
     adsr_run.release_ticks = adsr_reset.release_ticks;
     adsr_run.release_count = adsr_reset.release_count;
+#endif
 }
 
 void Envelope::step() {
@@ -113,11 +115,6 @@ void Envelope::step() {
     }
 
 }
-
-void Envelope::setState(adsr_state_t s) {
-    adsr_state = s;
-}
-
 
 uint16_t Envelope::apply_envelope(uint8_t wave) {
 uint16_t amplitude;

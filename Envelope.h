@@ -52,7 +52,8 @@ class Envelope {
         void start();
         void step();
 
-        void setState(adsr_state_t);
+        inline void setState(adsr_state_t s) { adsr_state = s; };
+        inline adsr_state_t getState(void) { return adsr_state; };
 
         uint16_t apply_envelope(uint8_t);
 

@@ -10,6 +10,10 @@
 
 int main() {
 
+printf("/*\n    Quarter sin wave, will mirror the other 3/4\n");
+printf("    360 degrees = 1024 units, this table is 0-255 (1/4)\n");
+printf("    Max Amplitude 127\n*/\n");
+
 printf("const uint8_t t_sine_table[256] = {\n");
 
 for (int i=0;i<256;i++) {
