@@ -16,26 +16,20 @@
 extern "C" {
 #include "hardware.h"
 #include "circbuf_tiny.h"
-#include "midi.h"
 #include "wave_function.h"
-#include "debug.h"
 }
+
+#include "debug.h"
 
 #include "Voice.h"
 #include "Envelope.h"
-
-inline void process_midi_messages();
+#include "midi.h"
 
 using namespace SoftSynth;
 
 /* Voices */
-#define MAX_VOICES  3
-Voice voices[MAX_VOICES];
-
-/* midi buffer */
-circbuf_tiny_t *midi_buf;
-uint8_t midi_running_status = MIDI_STATUS_NOTE_OFF;
-uint8_t midi_current_channel = MIDI_DEFAULT_CHANNEL;
+extern Voice voices[];
+extern circbuf_tiny_t *midi_buf;
 
 /*
 We are tuning to A at    440.000 Hz
@@ -134,25 +128,18 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     /* Set frame format: 8N1 */
     UCSR0C = (3<<UCSZ00);
 
-
-    /* initialize midi buffer */
-    if ( (midi_buf = (circbuf_tiny_t*)malloc(sizeof(circbuf_tiny_t))) == 0) {
-        error_set(ERROR_FATAL);
-    }
-
-    if (circbuf_tiny_init(midi_buf) == 0) {
-        error_set(ERROR_FATAL);
-    }
+    /* Init midi and midi buffer */
+    midi_init();
 
     /* Initalize Voices */
     voices[0].init(t_pulse, flute_instrument);
     //voices[0].init(t_triangle, flute_instrument);
     //voices[0].init(t_noise, flute_instrument);
     voices[1].init(t_sawtooth, flute_instrument2);
-    voices[2].init(t_sawtooth, flute_instrument2);
+    //voices[2].init(t_sawtooth, flute_instrument2);
 
     //voices[2].init(t_triangle, flute_instrument2);
-    //voices[2].init(t_noise, flute_instrument2);
+    voices[2].init(t_noise, flute_instrument2);
 
     sei();
 
@@ -215,13 +202,13 @@ static uint16_t random_number_count = 0;
     process_midi_messages();                 // 1.2us
 
                                              //11.6us running
-error_set(ERROR_MARK);
+ERROR_SET(ERROR_MARK);
     mixer=0;
     for (i=0;i<MAX_VOICES;i++) {
         voices[i].step();                       //7.6us running
         mixer += (voices[i].sample());          //5.0us running
     }
-error_set(ERROR_MARK);
+ERROR_SET(ERROR_MARK);
 
     #if 0
     //Dithering
@@ -244,77 +231,16 @@ error_set(ERROR_MARK);
 ISR(USART_RX_vect) {
 volatile uint8_t b;
 
-error_set(ERROR_RECEIVE);
+ERROR_SET(ERROR_RECEIVE);
 
     if (UCSR0A & (1<<RXC0)) {
         b = (uint8_t)UDR0;
         /* Critial section, but on Atmel328p, interrupt handler is safe */
         if (circbuf_tiny_write(midi_buf,b) == 0) {
-            error_set(ERROR_OVERFLOW);
+            ERROR_SET(ERROR_OVERFLOW);
         }
         /* end critical */
     }
 
-error_set(ERROR_RECEIVE);
-}
-
-inline void process_midi_messages() {
-    /* Critial section, but on Atmel328p, interrupt handler is safe */
-    static uint8_t byte_out;
-    if (CIRCBUF_TINY_SIZE(midi_buf) > 0)                                            //4.20us
-    {
-        //Get byte from buffer
-        circbuf_tiny_read(midi_buf, &byte_out);
-
-    #if 1 //Midi processing
-        static uint8_t midi_byte_number = 0; 
-
-        if (byte_out & MIDI_STATUS_MASK) {
-            midi_byte_number=0;
-
-            midi_running_status=(byte_out & MIDI_STATUS_TYPE_MASK) >> MIDI_STATUS_TYPE_OFFSET;
-            midi_current_channel = byte_out & MIDI_STATUS_CHANNEL_MASK;
-
-            if (midi_running_status == MIDI_STATUS_RESET) {
-                //synth.reset();
-            }
-        } else {
-
-
-            switch(midi_running_status) {
-                case    MIDI_STATUS_NOTE_ON:
-                    if (midi_byte_number == 0) {
-                        if(midi_current_channel < MAX_VOICES) {
-                            voices[midi_current_channel].startNote(byte_out);
-                        }
-                        midi_byte_number++;
-                        break;
-                    }
-
-                    if (midi_byte_number == 1) {
-                        if (byte_out == 0 ) { //zero velocity = NOTE_OFF
-                            if(midi_current_channel < MAX_VOICES) {
-                                voices[midi_current_channel].stopNote();
-                            }
-                        }
-                        //voice0.velocity = byte_out;
-                        midi_byte_number=0;
-                        break;
-                    }
-                    break;
-                case    MIDI_STATUS_NOTE_OFF:
-                        if(midi_current_channel < MAX_VOICES) {
-                            voices[midi_current_channel].stopNote();
-                        }
-                        midi_byte_number=0;
-                    break;
-                default:
-                    midi_byte_number = 0;
-                    break;
-            }
-        #endif //end midi processing
-
-        }
-    }
-    /* end critical */
+ERROR_SET(ERROR_RECEIVE);
 }

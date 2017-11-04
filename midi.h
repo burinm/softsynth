@@ -7,6 +7,19 @@
 #ifndef __MIDI_H__
 #define __MIDI_H__
 
+#include "Voice.h"
+using namespace SoftSynth;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+   #include "circbuf_tiny.h"
+#ifdef __cplusplus
+}
+#endif
+
+#define MAX_VOICES  3
+
 #define MIDI_STATUS_MASK               0x80
 #define MIDI_DATA_MASK                 0x7F
 #define MIDI_STATUS_TYPE_OFFSET        4 
@@ -31,6 +44,15 @@
 #define MIDI_MESSAGE_SYSTEM_EXCLUSIVE
 #define MIDI_MESSAGE_SYSTEM_COMMON
 #define MIDI_MESSAGE_SYSTEM_RT
+
+/* Voices */
+extern Voice voices[MAX_VOICES];
+
+/* midi buffer */
+extern circbuf_tiny_t *midi_buf;
+
+void midi_init();
+void process_midi_messages();
 
 
 

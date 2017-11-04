@@ -5,10 +5,14 @@
 #include <csignal>
 #include <ctime>
 
+//#include <sched.h> //yield
+
 #include "../Voice.h"
 #include "../Envelope.h"
+#include "../midi.h"
 
 extern "C" {
+    #include "test_midi.h"
     #include "../wave_function.h"
 }
 
@@ -39,6 +43,7 @@ envelope_t flute_instrument = {
     .release_count =    107,
 };
 
+void ctrl_c(int);
 void timer0_pop(int sig, siginfo_t *si, void *uc);
 
 void setup_timer();
@@ -65,16 +70,17 @@ static struct sigaction sa;
 
            /* Establish handler for timer signal */
 
-           printf("Establishing handler for signal %d\n", SIG);
+           fprintf(stderr, "Establishing handler for signal %d\n", SIG);
            sa.sa_flags = SA_SIGINFO;
            sa.sa_sigaction = timer0_pop;
-           sigemptyset(&sa.sa_mask);
+           //sigemptyset(&sa.sa_mask);
+           sigaddset(&sa.sa_mask,SIGIO); //Block I/O (serial) signals
            if (sigaction(SIG, &sa, NULL) == -1)
                errExit("sigaction");
 
            /* Block timer signal temporarily */
 
-           printf("Blocking signal %d\n", SIG);
+           fprintf(stderr, "Blocking signal %d\n", SIG);
            sigemptyset(&mask);
            sigaddset(&mask, SIG);
            if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
@@ -88,7 +94,7 @@ static struct sigaction sa;
            if (timer_create(CLOCKID, &sev, &timerid) == -1)
                errExit("timer_create");
 
-           printf("timer ID is 0x%lx\n", (long) timerid);
+           fprintf(stderr, "timer ID is 0x%lx\n", (long) timerid);
 
            /* Start the timer */
 
@@ -103,13 +109,13 @@ static struct sigaction sa;
            /* Sleep for a while; meanwhile, the timer may expire
               multiple times */
 
-           printf("Unblocking signal %d\n", SIG);
+           fprintf(stderr, "Unblocking signal %d\n", SIG);
            if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
                errExit("sigprocmask");
 }
 
 static uint8_t sample;
-static Voice v0;
+extern Voice voices[MAX_VOICES]; //TODO: figure out who owns this initialization
 //static uint16_t i=0;
 int main(int argc, char* argv[]) {
 uint8_t note = 57;
@@ -118,20 +124,53 @@ uint8_t note = 57;
         note = (uint8_t)atoi(argv[1]);
     }
 
-    v0.init(t_sawtooth,flute_instrument);
+    /* Install ctrl-C handler, need to restore serial port on quit */
+    signal(SIGINT, ctrl_c);
+
+    //midi_init();
+    serial_port_setup();
+
+    for (int i=0;i<MAX_VOICES;i++) {
+        //voices[i].init(t_sin,flute_instrument);
+        voices[i].init(t_sawtooth,flute_instrument);
+    }
     //v0.init(t_sin,flute_instrument);
-    v0.startNote(note);
+    voices[0].startNote(note);
 
     setup_timer();
 
-for (;;);
+    for (;;) {
+        //sched_yield();
+    }
 }
 
+static uint16_t mixer=0;
 void timer0_pop(int sig, siginfo_t *si, void *uc) {
 
-    v0.step();
+    uint8_t low_byte = (uint8_t)(mixer &0xff);
+    uint8_t hi_byte = (uint8_t)(mixer >> 8);
+    fwrite(&low_byte,1,1,stdout);
+    fwrite(&hi_byte,1,1,stdout);
+    
+    process_midi_messages();   
+
+    mixer=0;
+    for (int i=0;i<MAX_VOICES;i++) {
+        voices[i].step();
+        mixer += (voices[i].sample());
+    }
+     mixer <<= 2;
+
+  //  v0.step();
   //  sample = v0.sample();
-    sample = v0.sample();
-    sample = (255-sample);
-    fwrite(&sample,1,1,stdout);
+ //   sample = v0.sample();
+  //  sample = (255-sample);
+   // fwrite(&mixer,1,1,stdout);
+}
+
+void ctrl_c(int) {
+    serial_port_teardown();
+    fprintf(stderr, "Quitting...\n");
+    exit(0);
+
 }
