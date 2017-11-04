@@ -73,7 +73,7 @@ static struct sigaction sa;
            sa.sa_flags = SA_SIGINFO;
            sa.sa_sigaction = timer0_pop;
            //sigemptyset(&sa.sa_mask);
-           sigaddset(&sa.sa_mask,SIGIO); //Block I/O (serial) signals
+           sigaddset(&sa.sa_mask,MIDI_INPUT_SIGNAL); //Block I/O (serial) midi signals
            if (sigaction(OSC_CLOCK_SIGNAL, &sa, NULL) == -1)
                errExit("sigaction");
 
@@ -158,7 +158,8 @@ void timer0_pop(int sig, siginfo_t *si, void *uc) {
         voices[i].step();
         mixer += (voices[i].sample());
     }
-     mixer <<= 2;
+     //mixer <<= 2;
+     mixer <<= 4; //adjust volume for testing only
 
   //  v0.step();
   //  sample = v0.sample();
