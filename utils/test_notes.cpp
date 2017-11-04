@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include <csignal>
+//#include <csignal>
 #include <ctime>
 
 //#include <sched.h> //yield
@@ -56,7 +56,6 @@ void setup_timer() {
     Linux Programmer's Manual
 */
 #define CLOCKID CLOCK_REALTIME
-#define SIG SIGRTMIN
 
 #define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \
                         } while (0)
@@ -70,26 +69,26 @@ static struct sigaction sa;
 
            /* Establish handler for timer signal */
 
-           fprintf(stderr, "Establishing handler for signal %d\n", SIG);
+           fprintf(stderr, "Establishing handler for signal %d\n", OSC_CLOCK_SIGNAL);
            sa.sa_flags = SA_SIGINFO;
            sa.sa_sigaction = timer0_pop;
            //sigemptyset(&sa.sa_mask);
            sigaddset(&sa.sa_mask,SIGIO); //Block I/O (serial) signals
-           if (sigaction(SIG, &sa, NULL) == -1)
+           if (sigaction(OSC_CLOCK_SIGNAL, &sa, NULL) == -1)
                errExit("sigaction");
 
            /* Block timer signal temporarily */
 
-           fprintf(stderr, "Blocking signal %d\n", SIG);
+           fprintf(stderr, "Blocking signal %d\n", OSC_CLOCK_SIGNAL);
            sigemptyset(&mask);
-           sigaddset(&mask, SIG);
+           sigaddset(&mask, OSC_CLOCK_SIGNAL);
            if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
                errExit("sigprocmask");
 
            /* Create the timer */
 
            sev.sigev_notify = SIGEV_SIGNAL;
-           sev.sigev_signo = SIG;
+           sev.sigev_signo = OSC_CLOCK_SIGNAL;
            sev.sigev_value.sival_ptr = &timerid;
            if (timer_create(CLOCKID, &sev, &timerid) == -1)
                errExit("timer_create");
@@ -109,7 +108,7 @@ static struct sigaction sa;
            /* Sleep for a while; meanwhile, the timer may expire
               multiple times */
 
-           fprintf(stderr, "Unblocking signal %d\n", SIG);
+           fprintf(stderr, "Unblocking signal %d\n", OSC_CLOCK_SIGNAL);
            if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
                errExit("sigprocmask");
 }
