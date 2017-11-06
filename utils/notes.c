@@ -12,7 +12,8 @@
 #include "notes.h"
 #include "../hardware.h"
 
-static const char* note_names[12] = { "A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"};
+//static const char* note_names[12] = { "A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"};
+static const char* note_names[12] = { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"};
 
 int main(int argc, char* argv[]) {
 int phase_mode = 0;
@@ -82,7 +83,7 @@ int octave;
 for (octave=-2;octave<10;octave++) {
     int steps;
 
-    for (steps=0;steps<STEPS_IN_OCTAVE;steps++) { //Starting with "A"
+    for (steps=0;steps<STEPS_IN_OCTAVE;steps++) { //Starting with "C"
         double frequency;
         double ticks;
         double phase_multiplier;
@@ -114,10 +115,10 @@ for (octave=-2;octave<10;octave++) {
                 if (phase_mode) { printf("%6d",phase_multiplier_int); }
 
                 if (midi_note < 127) { printf(","); }
-                if ((midi_note +1) % 12 == 0) { printf("\n    "); }
+                if ((midi_note +1) % 12 == 0) { printf("// C%d\n    ",octave); }
 
             } else {
-                printf("[midi %3d] note %3d (%-2s%d):",midi_note, note_num, note_names[steps],octave);
+                printf("[midi %3d] note %3d (%-2s%2d):",midi_note, note_num, note_names[steps],octave);
                 printf(" %10.3f Hz synth ticks:%5d %7d\n", frequency, ticks_int, phase_multiplier_int);
             }
         }

@@ -8,6 +8,7 @@
 #include "utils/notes.h"
 
 extern "C" {
+#include <stdio.h> //TODO: remove, tesing only
 #include "hardware.h"
 }
 
@@ -32,6 +33,8 @@ void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
 void Voice::step() {
 
     phase = ticks * note_phase_mult_table[current_note];            //3.62us
+//fprintf(stderr,"(%d)",note_phase_mult_table[current_note]);
+//fprintf(stderr,"(%d)",current_note);
     phase = phase >> PHASE_MULT;
     phase &= (PARTS_PER_CYCLE - 1);
 

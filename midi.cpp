@@ -55,7 +55,7 @@ void process_midi_messages() {
 
             switch(midi_running_status) {
                 case    MIDI_STATUS_NOTE_ON:
-//fprintf(stderr,"Note on-->0x%x",byte_out);
+//fprintf(stderr,"Note on-->%d",byte_out);
                     if (midi_byte_number == 0) {
                         if(midi_current_channel < max_voices) {
                             voices[midi_current_channel].startNote(byte_out);
