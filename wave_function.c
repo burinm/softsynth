@@ -32,10 +32,10 @@ inline uint8_t t_sawtooth(uint16_t t) {
 
 inline uint8_t t_triangle(uint16_t t) {
     if (t > (QUADRANT_3 - 1)) {
-        return ( ( (PARTS_PER_CYCLE -1) - (2 * (t-QUADRANT_3)) ) >> BPC_AMPL_RATIO );
+        return (( 2 * ( (PARTS_PER_CYCLE -1) - (t-QUADRANT_3)) ) >> BPC_AMPL_RATIO );
     }
 
-    return (2 * t >> BPC_AMPL_RATIO);
+    return ( (2 * t) >> BPC_AMPL_RATIO);
 }
 
 inline uint8_t t_noise(uint16_t t) {
