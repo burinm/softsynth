@@ -22,8 +22,9 @@ inline uint8_t t_sin(uint16_t t) { //TODO: Add error handling <1024
 }
 
 inline uint8_t t_pulse(uint16_t t) {
+
     //quarter duty cycle
-    if (t < (QUADRANT_2 - 1)) { return MAX_AMPLITUDE; }
+    if (t < ((PARTS_PER_CYCLE / 4) - 1)) { return MAX_AMPLITUDE; }
 
     return 0;
 }
