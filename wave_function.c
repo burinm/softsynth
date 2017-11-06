@@ -22,7 +22,8 @@ inline uint8_t t_sin(uint16_t t) { //TODO: Add error handling <1024
 inline uint8_t t_pulse(uint16_t t) {
     //quarter duty cycle
     if (t < (QUADRANT_2 - 1)) { return MAX_AMPLITUDE; }
-                  return 0;
+
+    return 0;
 }
 
 inline uint8_t t_sawtooth(uint16_t t) {

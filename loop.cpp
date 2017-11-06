@@ -139,7 +139,8 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     //voices[2].init(t_sawtooth, flute_instrument2);
 
     //voices[2].init(t_sin, flute_instrument2);
-    voices[2].init(t_noise, flute_instrument2);
+    voices[2].init(t_triangle, flute_instrument2);
+    //voices[2].init(t_noise, flute_instrument2);
 
     sei();
 

@@ -7,6 +7,10 @@
 #include "Voice.h"
 #include "utils/notes.h"
 
+extern "C" {
+#include "hardware.h"
+}
+
 #ifdef ARDUINO
     #include "debug.h"
 #endif
@@ -29,7 +33,7 @@ void Voice::step() {
 
     phase = ticks * note_phase_mult_table[current_note];            //3.62us
     phase = phase >> PHASE_MULT;
-    phase &= 0x3ff;
+    phase &= (PARTS_PER_CYCLE - 1);
 
     //if (ticks == note_ticks_table[current_note] ) { ticks = 0; }
 
