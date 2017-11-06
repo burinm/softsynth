@@ -14,10 +14,11 @@ int main() {
 
 
 
-uint16_t i_max = (PARTS_PER_CYCLE/4);
+uint16_t i_max = WAVE_TABLE_QUANT;
 
 printf("/*\n    Quarter sin wave, will mirror the other 3/4\n");
-printf("    360 degrees = %d units, this table is 0-%d (1/4)\n",PARTS_PER_CYCLE,i_max-1);
+printf("    Sin quantization limited to %d parts\n", i_max);
+printf("    360 degrees = %d units, this table is 0-%d (1/4)\n",PARTS_PER_CYCLE,WAVE_TABLE_QUANT-1);
 printf("    Max Amplitude %d\n*/\n",MAX_AMPLITUDE);
 
 printf("const uint8_t t_sine_table[%d] = {\n",i_max);

@@ -19,9 +19,6 @@ uint8_t t_sawtooth(uint16_t t);
 uint8_t t_triangle(uint16_t  t);
 uint8_t t_noise(uint16_t  t);
 
-
-//For now the sin table size must match the PARTS_PER_CYCLE/4
-
 const uint8_t t_sine_table[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,
   1,  1,  1,  1,  1,  2,  2,  2,  2,  3,  3,  3,  3,  4,  4,  4,
@@ -40,6 +37,7 @@ const uint8_t t_sine_table[256] = {
 206,208,209,211,212,214,215,217,218,220,222,223,225,226,228,229,
 231,233,234,236,237,239,240,242,244,245,247,248,250,251,253,254
 };
+
 
 
 #endif

@@ -8,10 +8,12 @@
 #include "hardware.h"
 
 inline uint8_t t_sin(uint16_t t) { //TODO: Add error handling <1024
-#define QUADRANT_4  ((PARTS_PER_CYCLE / 4) * 3)
-#define QUADRANT_3  (PARTS_PER_CYCLE / 2)
-#define QUADRANT_2  (PARTS_PER_CYCLE / 4)
+#define QUADRANT_4  ((WAVE_TABLE_QUANT / 4) * 3)
+#define QUADRANT_3  (WAVE_TABLE_QUANT / 2)
+#define QUADRANT_2  (WAVE_TABLE_QUANT / 4)
 #define QUADRANT_1  0 
+
+    t >>= WT_AMPL_RATIO;
 
     if (t > QUADRANT_4 - 1) { return                   t_sine_table[MAX_AMPLITUDE - (t - QUADRANT_4) ]  ; }
     if (t > QUADRANT_3 - 1) { return MAX_AMPLITUDE - ( t_sine_table[                (t - QUADRANT_3) ] ); }
