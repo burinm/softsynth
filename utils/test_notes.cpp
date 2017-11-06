@@ -129,12 +129,18 @@ uint8_t note = 57;
     //midi_init();
     serial_port_setup();
 
+#if 0
     for (int i=0;i<MAX_VOICES;i++) {
         //voices[i].init(t_sin,flute_instrument);
         voices[i].init(t_sawtooth,flute_instrument);
     }
-    //v0.init(t_sin,flute_instrument);
-    voices[0].startNote(note);
+#endif
+
+    voices[0].init(t_pulse,flute_instrument);
+    voices[1].init(t_sawtooth,flute_instrument);
+    voices[2].init(t_noise,flute_instrument);
+
+//    voices[0].startNote(note);
 
     setup_timer();
 
@@ -158,8 +164,8 @@ void timer0_pop(int sig, siginfo_t *si, void *uc) {
         voices[i].step();
         mixer += (voices[i].sample());
     }
-     //mixer <<= 2;
-     mixer <<= 4; //adjust volume for testing only
+     mixer <<= 2;
+     //mixer <<= 4; //adjust volume for testing only
 
   //  v0.step();
   //  sample = v0.sample();
