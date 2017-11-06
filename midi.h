@@ -18,8 +18,6 @@ extern "C" {
 }
 #endif
 
-#define MAX_VOICES  3
-
 #define MIDI_STATUS_MASK               0x80
 #define MIDI_DATA_MASK                 0x7F
 #define MIDI_STATUS_TYPE_OFFSET        4 
@@ -44,9 +42,6 @@ extern "C" {
 #define MIDI_MESSAGE_SYSTEM_EXCLUSIVE
 #define MIDI_MESSAGE_SYSTEM_COMMON
 #define MIDI_MESSAGE_SYSTEM_RT
-
-/* Voices */
-extern Voice voices[MAX_VOICES];
 
 /* midi buffer */
 extern circbuf_tiny_t *midi_buf;

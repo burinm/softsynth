@@ -5,7 +5,7 @@
 //#include <csignal>
 #include <ctime>
 
-//#include <sched.h> //yield
+#include <sched.h> //yield
 
 #include "../Voice.h"
 #include "../Envelope.h"
@@ -17,20 +17,6 @@ extern "C" {
 }
 
 using namespace SoftSynth;
-
-const uint16_t note_phase_mult_table[128] = {
-        49,    52,    55,    58,    61,    65,    69,    73,    77,    82,    87,    92,
-        97,   103,   109,   116,   123,   130,   138,   146,   154,   164,   173,   184,
-       194,   206,   218,   231,   245,   260,   275,   291,   309,   327,   347,   367,
-       389,   412,   437,   463,   490,   519,   550,   583,   617,   654,   693,   734,
-       778,   824,   873,   925,   980,  1038,  1100,  1166,  1235,  1308,  1386,  1469,
-      1556,  1649,  1747,  1850,  1960,  2077,  2201,  2331,  2470,  2617,  2772,  2937,
-      3112,  3297,  3493,  3701,  3921,  4154,  4401,  4663,  4940,  5234,  5545,  5875,
-      6224,  6594,  6986,  7402,  7842,  8308,  8802,  9325,  9880, 10467, 11090, 11749,
-     12448, 13188, 13972, 14803, 15683, 16616, 17604, 18651, 19760, 20935, 22180, 23499,
-     24896, 26376, 27945, 29606, 31367,     0,     0,     0,     0,     0,     0,     0,
-         0,     0,     0,     0,     0,     0,     0,     0
-};
 
 envelope_t flute_instrument = {
     .attack_ticks =     16,
@@ -114,7 +100,11 @@ static struct sigaction sa;
 }
 
 static uint8_t sample;
-extern Voice voices[MAX_VOICES]; //TODO: figure out who owns this initialization
+
+/* Voices */
+extern const uint8_t max_voices;
+const uint8_t max_voices=5;
+Voice voices[max_voices]; //TODO: figure out who owns this initialization
 //static uint16_t i=0;
 int main(int argc, char* argv[]) {
 uint8_t note = 57;
@@ -130,22 +120,24 @@ uint8_t note = 57;
     serial_port_setup();
 
 #if 0
-    for (int i=0;i<MAX_VOICES;i++) {
+    for (int i=0;i<max_voices;i++) {
         //voices[i].init(t_sin,flute_instrument);
         voices[i].init(t_sawtooth,flute_instrument);
     }
 #endif
 
     voices[0].init(t_pulse,flute_instrument);
-    voices[1].init(t_sawtooth,flute_instrument);
-    voices[2].init(t_noise,flute_instrument);
+    voices[1].init(t_sin,flute_instrument);
+    voices[2].init(t_triangle,flute_instrument);
+    voices[3].init(t_sawtooth,flute_instrument);
+    voices[4].init(t_noise,flute_instrument);
 
 //    voices[0].startNote(note);
 
     setup_timer();
 
     for (;;) {
-        //sched_yield();
+        sched_yield();
     }
 }
 
@@ -160,12 +152,12 @@ void timer0_pop(int sig, siginfo_t *si, void *uc) {
     process_midi_messages();   
 
     mixer=0;
-    for (int i=0;i<MAX_VOICES;i++) {
+    for (int i=0;i<max_voices;i++) {
         voices[i].step();
         mixer += (voices[i].sample());
     }
-     mixer <<= 2;
-     //mixer <<= 4; //adjust volume for testing only
+     //mixer <<= 2;
+     mixer <<= 4; //adjust volume (16bit dac, with only 12 bits)
 
   //  v0.step();
   //  sample = v0.sample();

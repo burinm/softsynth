@@ -28,7 +28,10 @@ extern "C" {
 using namespace SoftSynth;
 
 /* Voices */
-extern Voice voices[];
+extern const uint8_t max_voices;
+const uint8_t max_voices=3;
+Voice voices[max_voices];
+
 extern circbuf_tiny_t *midi_buf;
 
 /*
@@ -135,7 +138,7 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     voices[0].init(t_pulse, flute_instrument);
     //voices[0].init(t_triangle, flute_instrument);
     //voices[0].init(t_noise, flute_instrument);
-    voices[1].init(t_sawtooth, flute_instrument2);
+    voices[1].init(t_sin, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
 
     //voices[2].init(t_sin, flute_instrument2);
@@ -204,11 +207,13 @@ static uint16_t random_number_count = 0;
 
                                              //11.6us running
 ERROR_SET(ERROR_MARK);
+#if 1
     mixer=0;
-    for (i=0;i<MAX_VOICES;i++) {
+    for (i=0;i<max_voices;i++) {
         voices[i].step();                       //7.6us running
         mixer += (voices[i].sample());          //5.0us running
     }
+#endif
 ERROR_SET(ERROR_MARK);
 
     #if 0

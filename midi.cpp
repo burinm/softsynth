@@ -10,7 +10,8 @@
 using namespace SoftSynth;
 
 /* Voices */
-Voice voices[MAX_VOICES];
+extern const uint8_t max_voices;
+extern Voice voices[];
 
 /* midi buffer */
 circbuf_tiny_t *midi_buf;
@@ -56,7 +57,7 @@ void process_midi_messages() {
                 case    MIDI_STATUS_NOTE_ON:
 //fprintf(stderr,"Note on-->0x%x",byte_out);
                     if (midi_byte_number == 0) {
-                        if(midi_current_channel < MAX_VOICES) {
+                        if(midi_current_channel < max_voices) {
                             voices[midi_current_channel].startNote(byte_out);
                         }
                         midi_byte_number++;
@@ -65,7 +66,7 @@ void process_midi_messages() {
 
                     if (midi_byte_number == 1) {
                         if (byte_out == 0 ) { //zero velocity = NOTE_OFF
-                            if(midi_current_channel < MAX_VOICES) {
+                            if(midi_current_channel < max_voices) {
                                 voices[midi_current_channel].stopNote();
                             }
                         }
@@ -76,7 +77,7 @@ void process_midi_messages() {
                     break;
                 case    MIDI_STATUS_NOTE_OFF:
 //fprintf(stderr,"Note off-->0x%x",byte_out);
-                        if(midi_current_channel < MAX_VOICES) {
+                        if(midi_current_channel < max_voices) {
                             voices[midi_current_channel].stopNote();
                         }
                         midi_byte_number=0;

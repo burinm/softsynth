@@ -5,6 +5,6 @@
 
 #define STEPS_IN_OCTAVE 12 
 #define OFFSET_A4_NOTE  (4 * STEPS_IN_OCTAVE)
-//#define MIDI_A4_NOTE    57
-#define MIDI_A4_NOTE   69 
+#define MIDI_A4_NOTE    57
+//#define MIDI_A4_NOTE   69 
 #endif
