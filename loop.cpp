@@ -100,24 +100,23 @@ wdt_disable();
     TCCR0A = 0;
     TCCR0B = 0;
 
-    OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE) +1;
+    OCR0A = ((CPU_SPEED/8)/LOOP_RATE) +1;
     OCR0B =0;
     TCCR0B |= (1 << CS01); //x8 prescale
     TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
     TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
 
     
-#if 0
+#if 1
     //Defaults for timer registers
     TCCR1A = 0;
     TCCR1B = 0;
-    TCNT1  = 0;
 
     // Timer 1, 16bit timer
-    OCR1A = (CPU_SPEED/SAMPLE_RATE) +1 ; //round up
-    TCCR1B |= (1 << WGM12 );   // CTC mode, top is OCR1A
-    TCCR1B |= (1 << CS10);    // x1 prescaler (no prescaling)
-    TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+    OCR1A = 0; //Full 16 bits
+    //TCCR1B |= (1 << WGM12 );   // CTC mode, top is OCR1A
+    TCCR1B |= (1 << CS12);    // divide 256 prescaler
+    //TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
 #endif
 
 
@@ -197,6 +196,10 @@ static uint8_t sample;
 static uint8_t i=0;
 static uint16_t random_number2 = 0;
 static uint16_t random_number_count = 0;
+static uint16_t fast_timer=0;
+
+//interrupts should be off inside here 
+fast_timer= TCNT1;
 
 // Play sample first thing for timing reasons. This means notes
 //  will possibly be behind 1/22.05Hz
@@ -226,7 +229,7 @@ ERROR_SET(ERROR_MARK);
 #if 1
     mixer=0;
     for (i=0;i<max_voices;i++) {
-        voices[i].step();                       //7.6us running
+        voices[i].step(fast_timer);                       //7.6us running
         mixer += (voices[i].sample());          //5.0us running
     }
 #endif

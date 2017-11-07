@@ -32,9 +32,10 @@ void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
     envelope.init(e);
 }
 
-void Voice::step() {
+void Voice::step(uint16_t t) {
 
-    phase += note_phase_mult_table[current_note];            //?us
+    phase = t * note_phase_mult_table[current_note];            //?us
+    //phase += note_phase_mult_table[current_note];            //?us
     //phase = phase % PARTS_PER_CYCLE; //automatic 16bit rollover
 
     //if (ticks == note_ticks_table[current_note] +1 ) { ticks = 1; }
