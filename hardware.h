@@ -17,7 +17,11 @@ Synth timer (samples) will need 363 machine ticks
 //#define SAMPLE_RATE 5512
 
 #define BITS_PER_PART_PER_CYCLE 16
-#define PARTS_PER_CYCLE         (1 << BITS_PER_PART_PER_CYCLE) //currently 4096 
+#define PARTS_PER_CYCLE         (1 << BITS_PER_PART_PER_CYCLE) //currently 2^16 
+
+#define PARTS_PER_CYCLE_MAX_VALUE  (65535) //Hardcoded so preprocessor doesn't mangle > 2^16 
+#define PARTS_PER_CYCLE_HALF    (1 << (BITS_PER_PART_PER_CYCLE - 1)) // 2^15
+#define PARTS_PER_CYCLE_QUARTER (1 << (BITS_PER_PART_PER_CYCLE - 2)) // 2^14
 
 #define BITS_AMPLITUDE          8
 #define MAX_AMPLITUDE           ((1 << BITS_AMPLITUDE) -1)     //currently 255

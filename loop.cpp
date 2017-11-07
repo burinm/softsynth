@@ -80,6 +80,18 @@ envelope_t flute_instrument2 = {
     .release_count =    107,
 };
 
+envelope_t fatty_base_instrument1 = {
+
+    .attack_ticks =     1,
+    .attack_count =     127,
+    .decay_ticks =      0,
+    .decay_count =      0,
+    .sustain_ticks =    8192,
+    .sustain_hold =     1,
+    .release_ticks =    128,
+    .release_count =    107,
+};
+
 
 #if 0
 static int8_t dither_random_table[128] = {
@@ -113,7 +125,7 @@ wdt_disable();
     voices[0].init(t_sin, flute_instrument1);
     //voices[0].init(t_triangle, flute_instrument);
     //voices[0].init(t_noise, flute_instrument);
-    voices[1].init(t_triangle, flute_instrument2);
+    voices[1].init(t_pulse, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
 
     //voices[2].init(t_triangle, flute_instrument2);
@@ -123,7 +135,8 @@ wdt_disable();
 
 
     //voices[3].init(t_noise, flute_instrument2);
-    voices[3].init(t_pulse, flute_instrument2);
+    //voices[3].init(t_pulse, fatty_base_instrument1);
+    voices[3].init(t_triangle, fatty_base_instrument1);
 
 
     //Interrupts of to setup timers

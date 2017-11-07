@@ -24,7 +24,7 @@ inline uint8_t t_sin(uint16_t t) { //TODO: Add error handling <1024
 inline uint8_t t_pulse(uint16_t t) {
 
     //quarter duty cycle (-2) = divide by 2
-    if (t < (( 1 << (BITS_PER_PART_PER_CYCLE - 2)) - 1)) { return MAX_AMPLITUDE; }
+    if (t < PARTS_PER_CYCLE_QUARTER) { return MAX_AMPLITUDE; }
 
     return 0;
 }
@@ -34,8 +34,8 @@ inline uint8_t t_sawtooth(uint16_t t) {
 }
 
 inline uint8_t t_triangle(uint16_t t) {
-    if (t > (QUADRANT_3 - 1)) {
-        return (( 2 * ( (PARTS_PER_CYCLE -1) - (t-QUADRANT_3)) ) >> BPC_AMPL_RATIO );
+    if (t > PARTS_PER_CYCLE_HALF) {
+        return ( (2 * ( PARTS_PER_CYCLE - t )) >> BPC_AMPL_RATIO );
     }
 
     return ( (2 * t) >> BPC_AMPL_RATIO);
