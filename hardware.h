@@ -13,6 +13,7 @@ Synth timer (samples) will need 363 machine ticks
 #define SAMPLE_RATE    62500 
 //#define LOOP_RATE 22050
 #define LOOP_RATE 11025
+//#define LOOP_RATE 5512 
 
 #define BITS_PER_PART_PER_CYCLE 16
 #define PARTS_PER_CYCLE         (1 << BITS_PER_PART_PER_CYCLE) //currently 4096 

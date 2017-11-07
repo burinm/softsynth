@@ -14,18 +14,15 @@ extern const uint8_t max_voices;
 extern Voice voices[];
 
 /* midi buffer */
-circbuf_tiny_t *midi_buf;
+uint8_t midi_static_alloc[CIRCBUF_TINY_MAX+1];
+circbuf_tiny_t midi_buf;
 
 static uint8_t midi_running_status = MIDI_STATUS_NOTE_OFF;
 static uint8_t midi_current_channel = MIDI_DEFAULT_CHANNEL;
 
 void midi_init() {
     /* initialize midi buffer */
-    if ( (midi_buf = (circbuf_tiny_t*)malloc(sizeof(circbuf_tiny_t))) == 0) {
-        ERROR_SET(ERROR_FATAL);
-    }
-
-    if (circbuf_tiny_init(midi_buf) == 0) {
+    if (circbuf_tiny_init(&midi_buf,midi_static_alloc) == 0) {
         ERROR_SET(ERROR_FATAL);
     }
 }
@@ -33,10 +30,10 @@ void midi_init() {
 void process_midi_messages() {
     /* Critial section, but on Atmel328p, interrupt handler is safe */
     static uint8_t byte_out;
-    if (CIRCBUF_TINY_SIZE(midi_buf) > 0)                                            //4.20us
+    if (CIRCBUF_TINY_SIZE(&midi_buf) > 0)                                            //4.20us
     {
         //Get byte from buffer
-        circbuf_tiny_read(midi_buf, &byte_out);
+        circbuf_tiny_read(&midi_buf, &byte_out);
 
     #if 1 //Midi processing
         static uint8_t midi_byte_number = 0; 

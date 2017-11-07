@@ -57,6 +57,8 @@ CXXFLAGS_STD      = -std=gnu++11
 ### Flags you might want to set for debugging purpose. Comment to stop.
 CXXFLAGS         += -pedantic -Wall -Wextra
 
+##LDFLAGS +=  -Wl,-Map,$(TARGET).map
+
 ### MONITOR_PORT
 ### The port your board is connected to. Using an '*' tries all the ports and finds the right one.
 MONITOR_PORT      = /dev/ttyACM*

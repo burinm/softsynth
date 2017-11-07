@@ -5,6 +5,15 @@
 
 */
 
+/* TODO: The big list
+
+    0) - profile midi buffer
+    1) - fix noise channel
+    2) - polyphony per channel?
+    3) - update linux emulator for new timer scheme
+    4) - cirbuf static, fix cirbuf impl
+*/
+
 #include <Arduino.h>
 
 #include <math.h>
@@ -29,10 +38,10 @@ using namespace SoftSynth;
 
 /* Voices */
 extern const uint8_t max_voices;
-const uint8_t max_voices=3;
+const uint8_t max_voices=4;
 Voice voices[max_voices];
 
-extern circbuf_tiny_t *midi_buf;
+extern circbuf_tiny_t midi_buf;
 
 /*
 We are tuning to A at    440.000 Hz
@@ -44,18 +53,6 @@ Synth timer (samples) will need 363 machine ticks
 
 /* Notes:
 */
-
-envelope_t flute_instrument = {
-
-    .attack_ticks =     16,
-    .attack_count =     127,
-    .decay_ticks =      16,
-    .decay_count =      20,
-    .sustain_ticks =    4096,
-    .sustain_hold =     1,
-    .release_ticks =    16,
-    .release_count =    107,
-};
 
 envelope_t flute_instrument2 = {
 
@@ -70,6 +67,7 @@ envelope_t flute_instrument2 = {
 };
 
 
+#if 0
 static int8_t dither_random_table[128] = {
     1,1,-2,0,0,0,-1,1,1,1,-2,-1,1,0,0,0,
     0,1,-1,1,2,0,0,1,0,-1,-2,0,2,0,-1,0,
@@ -80,6 +78,7 @@ static int8_t dither_random_table[128] = {
     1,-1,-2,0,0,-2,-2,0,-2,-1,0,-2,0,0,1,-1,
     2,2,-1,-2,2,-1,0,-2,1,-1,0,0,0,-1,-1,-2,
 };
+#endif
 
 
 
@@ -94,15 +93,37 @@ wdt_disable();
 
     //8-bit sound out msb
     DDRB = 0B00111111; //pins 0-5 output, sound msb
+
+    /* Initalize Voices */
+    //voices[0].init(t_pulse, flute_instrument);
+    voices[0].init(t_sin, flute_instrument2);
+    //voices[0].init(t_triangle, flute_instrument);
+    //voices[0].init(t_noise, flute_instrument);
+    voices[1].init(t_sin, flute_instrument2);
+    //voices[2].init(t_sawtooth, flute_instrument2);
+
+    //voices[2].init(t_triangle, flute_instrument2);
+    voices[2].init(t_sin, flute_instrument2);
+    //voices[2].init(t_sawtooth, flute_instrument2);
+    //voices[2].init(t_noise, flute_instrument2);
+
+
+    //voices[3].init(t_noise, flute_instrument2);
+    voices[3].init(t_pulse, flute_instrument2);
+
+
+    //Interrupts of to setup timers
     cli();
 
     //Defaults for timer0 registers
     TCCR0A = 0;
     TCCR0B = 0;
 
-    OCR0A = ((CPU_SPEED/8)/LOOP_RATE) +1;
+    //OCR0A = ((CPU_SPEED/8)/LOOP_RATE) +1;
+    OCR0A = ((CPU_SPEED/64)/LOOP_RATE) +1;
     OCR0B =0;
-    TCCR0B |= (1 << CS01); //x8 prescale
+    //TCCR0B |= (1 << CS01); // divide 8 prescale
+    TCCR0B |= ( (1 << CS00) | (1 << CS01)); // divide 64 prescale
     TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
     TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
 
@@ -147,18 +168,7 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     /* Init midi and midi buffer */
     midi_init();
 
-    /* Initalize Voices */
-    //voices[0].init(t_pulse, flute_instrument);
-    voices[0].init(t_sin, flute_instrument);
-    //voices[0].init(t_triangle, flute_instrument);
-    //voices[0].init(t_noise, flute_instrument);
-    voices[1].init(t_sin, flute_instrument2);
-    //voices[2].init(t_sawtooth, flute_instrument2);
 
-    //voices[2].init(t_triangle, flute_instrument2);
-    voices[2].init(t_sin, flute_instrument2);
-    //voices[2].init(t_sawtooth, flute_instrument2);
-    //voices[2].init(t_noise, flute_instrument2);
 
     sei();
 
@@ -194,8 +204,8 @@ ISR(TIMER0_COMPA_vect) { //(45us allowed)                                       
 static uint16_t mixer;
 static uint8_t sample;
 static uint8_t i=0;
-static uint16_t random_number2 = 0;
-static uint16_t random_number_count = 0;
+//static uint16_t random_number2 = 0;
+//static uint16_t random_number_count = 0;
 static uint16_t fast_timer=0;
 
 //interrupts should be off inside here 
@@ -261,7 +271,7 @@ ERROR_SET(ERROR_RECEIVE);
     if (UCSR0A & (1<<RXC0)) {
         b = (uint8_t)UDR0;
         /* Critial section, but on Atmel328p, interrupt handler is safe */
-        if (circbuf_tiny_write(midi_buf,b) == 0) {
+        if (circbuf_tiny_write(&midi_buf,b) == 0) {
             ERROR_SET(ERROR_OVERFLOW);
         }
         /* end critical */

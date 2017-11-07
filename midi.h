@@ -44,7 +44,7 @@ extern "C" {
 #define MIDI_MESSAGE_SYSTEM_RT
 
 /* midi buffer */
-extern circbuf_tiny_t *midi_buf;
+extern circbuf_tiny_t midi_buf;
 
 void midi_init();
 void process_midi_messages();
