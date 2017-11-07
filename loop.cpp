@@ -95,16 +95,30 @@ wdt_disable();
     //8-bit sound out msb
     DDRB = 0B00111111; //pins 0-5 output, sound msb
     cli();
+
+    //Defaults for timer0 registers
+    TCCR0A = 0;
+    TCCR0B = 0;
+
+    OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE) +1;
+    OCR0B =0;
+    TCCR0B |= (1 << CS01); //x8 prescale
+    TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
+    TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
+
     
+#if 0
     //Defaults for timer registers
     TCCR1A = 0;
     TCCR1B = 0;
     TCNT1  = 0;
 
+    // Timer 1, 16bit timer
     OCR1A = (CPU_SPEED/SAMPLE_RATE) +1 ; //round up
     TCCR1B |= (1 << WGM12 );   // CTC mode, top is OCR1A
     TCCR1B |= (1 << CS10);    // x1 prescaler (no prescaling)
     TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+#endif
 
 
 //override some gcc stuff...
@@ -135,13 +149,15 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     midi_init();
 
     /* Initalize Voices */
-    voices[0].init(t_pulse, flute_instrument);
+    //voices[0].init(t_pulse, flute_instrument);
+    voices[0].init(t_sin, flute_instrument);
     //voices[0].init(t_triangle, flute_instrument);
     //voices[0].init(t_noise, flute_instrument);
     voices[1].init(t_sin, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
 
-    voices[2].init(t_triangle, flute_instrument2);
+    //voices[2].init(t_triangle, flute_instrument2);
+    voices[2].init(t_sin, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
     //voices[2].init(t_noise, flute_instrument2);
 
@@ -172,7 +188,7 @@ void loop()
 }
 
 //Update Synth routine
-ISR(TIMER1_COMPA_vect) { //(45us allowed)                                                  //17.02 running, 14.60us
+ISR(TIMER0_COMPA_vect) { //(45us allowed)                                                  //17.02 running, 14.60us
 //static uint16_t synth_clock=0;
 
 //For speed, don't allocate these every time

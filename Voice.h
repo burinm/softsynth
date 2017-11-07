@@ -42,6 +42,7 @@ class Voice {
         uint8_t (*wave_function)(uint16_t);
         Envelope envelope;
 
+
 /*
     Formula: round(65536)/ticks) @ 11025.000 Hz
 */
