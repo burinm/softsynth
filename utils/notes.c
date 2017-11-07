@@ -63,7 +63,7 @@ if (table_mode | phase_mode) {
         printf("    A4 is %10.3f Hz, machine running at %10.3f Hz\n",tuning_a,machine_frequency);
     }
     if (phase_mode) {
-        printf("    Formula: round((%d << %d)/ticks) @%10.3f Hz\n",PARTS_PER_CYCLE,PHASE_MULT,sample_frequency);
+        printf("    Formula: round(%d)/ticks) @%10.3f Hz\n",PARTS_PER_CYCLE,sample_frequency);
     }
 } else {
     printf("We are tuning to A at %10.3f Hz\n", tuning_a);
@@ -101,7 +101,7 @@ for (octave=-2;octave<10;octave++) {
 
             //Phase is 1024 degrees, multiply by 64 to just fit in 2^16 int
             // To find phase, tick_number * phase_multiplier[note] >> 6
-            phase_multiplier = round((PARTS_PER_CYCLE << PHASE_MULT)/ticks);
+            phase_multiplier = round(PARTS_PER_CYCLE/ticks);
             phase_multiplier_int = (unsigned int)phase_multiplier;
 #if 1
             if (phase_multiplier_int > (1<<15)) {

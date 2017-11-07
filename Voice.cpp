@@ -10,6 +10,7 @@
 extern "C" {
 #include <stdio.h> //TODO: remove, tesing only
 #include "hardware.h"
+#include "wave_function.h" //TODO: for random_reset, find better way to encapsulate this
 }
 
 #ifdef ARDUINO
@@ -21,6 +22,7 @@ namespace SoftSynth {
 void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
     ticks = 0;
     phase = 0;
+    previous_phase = 0;
 
     wave_function = f;
 
@@ -32,13 +34,10 @@ void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
 
 void Voice::step() {
 
-    phase = ticks * note_phase_mult_table[current_note];            //3.62us
-//fprintf(stderr,"(%d)",note_phase_mult_table[current_note]);
-//fprintf(stderr,"(%d)",current_note);
-    phase = phase >> PHASE_MULT;
-    phase &= (PARTS_PER_CYCLE - 1);
+    phase += note_phase_mult_table[current_note];            //?us
+    //phase = phase % PARTS_PER_CYCLE; //automatic 16bit rollover
 
-    //if (ticks == note_ticks_table[current_note] ) { ticks = 0; }
+    //if (ticks == note_ticks_table[current_note] +1 ) { ticks = 1; }
 
     if (sequencer_flag) {
         //if (//TODO:overflow sync
@@ -55,6 +54,7 @@ void Voice::step() {
 void Voice::startNote(uint8_t midinote) {
     current_note = midinote;
     sequencer_flag = 1;
+    random_reset();
 } 
 
 void Voice::stopNote() {

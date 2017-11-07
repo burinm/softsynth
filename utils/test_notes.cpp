@@ -132,7 +132,6 @@ uint8_t note = 57;
     voices[3].init(t_sawtooth,flute_instrument);
     voices[4].init(t_noise,flute_instrument);
 
-//    voices[0].startNote(note);
 
     setup_timer();
 

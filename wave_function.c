@@ -8,9 +8,9 @@
 #include "hardware.h"
 
 inline uint8_t t_sin(uint16_t t) { //TODO: Add error handling <1024
-#define QUADRANT_4  ((WAVE_TABLE_QUANT / 4) * 3)
-#define QUADRANT_3  (WAVE_TABLE_QUANT / 2)
-#define QUADRANT_2  (WAVE_TABLE_QUANT / 4)
+#define QUADRANT_4  (WAVE_TABLE_QUANT * 3)
+#define QUADRANT_3  (WAVE_TABLE_QUANT * 2)
+#define QUADRANT_2  (WAVE_TABLE_QUANT)
 #define QUADRANT_1  0 
 
     t >>= WT_AMPL_RATIO;
@@ -23,8 +23,8 @@ inline uint8_t t_sin(uint16_t t) { //TODO: Add error handling <1024
 
 inline uint8_t t_pulse(uint16_t t) {
 
-    //quarter duty cycle
-    if (t < ((PARTS_PER_CYCLE / 4) - 1)) { return MAX_AMPLITUDE; }
+    //quarter duty cycle (-2) = divide by 2
+    if (t < (( 1 << (BITS_PER_PART_PER_CYCLE - 2)) - 1)) { return MAX_AMPLITUDE; }
 
     return 0;
 }
@@ -41,21 +41,23 @@ inline uint8_t t_triangle(uint16_t t) {
     return ( (2 * t) >> BPC_AMPL_RATIO);
 }
 
-inline uint8_t t_noise(uint16_t t) {
 static uint16_t previous_1 = 0;
-static uint16_t previous_2 = (PARTS_PER_CYCLE -1);
 static uint16_t random_number = 9;
 
- //TODO: investigate previous algorithm
-        //Causes notes lower than 0x5 to be too high
+inline uint8_t t_noise(uint16_t t) {
+
+ //TODO: investigate previous algorithm, currently broken
 
     // Lehmer RNG, with Sinclair ZX81 parameters
-    if (previous_1 <= previous_2) {
+    if (t < previous_1) {
         random_number= ( 75 *random_number) % 65537;
     }
 
-    previous_2 = previous_1;
     previous_1 = t;
 
     return (uint8_t)(random_number >> 8);
+}
+
+inline void random_reset() {
+    previous_1 = 0;
 }

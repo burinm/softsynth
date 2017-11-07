@@ -19,6 +19,8 @@ uint8_t t_sawtooth(uint16_t t);
 uint8_t t_triangle(uint16_t  t);
 uint8_t t_noise(uint16_t  t);
 
+void random_reset();
+
 const uint8_t t_sine_table[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,
   1,  1,  1,  1,  1,  2,  2,  2,  2,  3,  3,  3,  3,  4,  4,  4,
