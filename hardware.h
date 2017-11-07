@@ -21,6 +21,7 @@ Synth timer (samples) will need 363 machine ticks
 
 #define BITS_AMPLITUDE          8
 #define MAX_AMPLITUDE           ((1 << BITS_AMPLITUDE) -1)     //currently 255
+#define HALF_AMPLITUDE          ((1 << BITS_AMPLITUDE) /2)     //currently 128
 
 #define BPC_AMPL_RATIO          (BITS_PER_PART_PER_CYCLE - BITS_AMPLITUDE)
 

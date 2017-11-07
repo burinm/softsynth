@@ -8,6 +8,26 @@
 
 namespace SoftSynth {
 
+//Envelope power table
+const uint8_t Envelope::envelope_table[128] = {
+    0,    2,    2,    3,    3,    3,    3,    3,
+    3,    3,    3,    4,    4,    4,    4,    4,
+    4,    5,    5,    5,    5,    5,    6,    6,
+    6,    6,    6,    7,    7,    7,    8,    8,
+    8,    8,    9,    9,    9,   10,   10,   11,
+   11,   11,   12,   12,   13,   13,   14,   14,
+   15,   15,   16,   17,   17,   18,   18,   19,
+   20,   21,   21,   22,   23,   24,   25,   26,
+   27,   28,   29,   30,   31,   32,   33,   34,
+   35,   37,   38,   39,   41,   42,   44,   46,
+   47,   49,   51,   53,   55,   57,   59,   61,
+   63,   65,   68,   70,   73,   75,   78,   81,
+   84,   87,   90,   94,   97,  100,  104,  108,
+  112,  116,  120,  125,  129,  134,  139,  144,
+  149,  154,  160,  166,  172,  178,  185,  191,
+  198,  205,  213,  221,  229,  237,  246,  255
+};
+
 void Envelope::init(envelope_t &e) {
 
     adsr_envelope_level = 0;
@@ -98,10 +118,11 @@ void Envelope::step() {
             }
         break;
 
-        case ADSR_RELEASE:
+        case ADSR_RELEASE: //This state can be forced with stopNote()
             if (adsr_run.release_ticks == 0) {
-                if (adsr_run.release_count == 0) {
+                if (adsr_run.release_count == 0 || adsr_envelope_level == 0) {
                     adsr_state = ADSR_OFF;
+                    adsr_envelope_level == 0; //Hmmm, should probably set sustain level first
                     //adsr_envelope_level = 0; //For now - eliminate later..
                     break;
                 }
@@ -119,6 +140,8 @@ void Envelope::step() {
 uint16_t Envelope::apply_envelope(uint8_t wave) {
 uint16_t amplitude;
 
+//TODO: Put all these constants in the hardware table?
+
     if (adsr_envelope_level == 0) {
         amplitude = 128;
     } else {
@@ -134,9 +157,6 @@ uint16_t amplitude;
     }
 return amplitude;
 }
-
-
-
 
 
 }

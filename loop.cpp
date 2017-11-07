@@ -8,8 +8,10 @@
 /* TODO: The big list
 
     0) - profile midi buffer
-    1) - fix noise channel
+    1) - fix noise channel 
     2) - fix envelope generator
+        o click gone
+        o need to check steps
     2) - polyphony per channel?
     3) - update linux emulator for new timer scheme
     4) - cirbuf static, fix cirbuf impl
@@ -62,16 +64,16 @@ envelope_t flute_instrument1 = {
     .decay_count =      20,
     .sustain_ticks =    4096,
     .sustain_hold =     1,
-    .release_ticks =    16,
+    .release_ticks =    64,
     .release_count =    107,
 };
 
 envelope_t flute_instrument2 = {
 
-    .attack_ticks =     16,
+    .attack_ticks =     1,
     .attack_count =     127,
-    .decay_ticks =      16,
-    .decay_count =      20,
+    .decay_ticks =      0,
+    .decay_count =      0,
     .sustain_ticks =    4096,
     .sustain_hold =     1,
     .release_ticks =    16,

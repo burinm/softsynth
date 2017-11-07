@@ -68,14 +68,14 @@ uint8_t Voice::sample() {
 uint8_t wave;
 uint16_t amplitude;
 
-    if (envelope.getState() ) {
+    if (envelope.getState() ) { //Not ADSR_OFF
         wave = wave_function(phase);                                    //2.4us
-        //amplitude = envelope.apply_envelope(wave);                      //2.4us
-    } else {
-        amplitude = 0;
     }
 
-//return (uint8_t)amplitude;
+    //If envelope generator is off, wave value is don't-care
+    amplitude = envelope.apply_envelope(wave);                      //2.4us
+
+return (uint8_t)amplitude;
 return (wave);
 }
 
