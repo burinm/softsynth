@@ -9,6 +9,7 @@
 
     0) - profile midi buffer
     1) - fix noise channel
+    2) - fix envelope generator
     2) - polyphony per channel?
     3) - update linux emulator for new timer scheme
     4) - cirbuf static, fix cirbuf impl
@@ -53,6 +54,17 @@ Synth timer (samples) will need 363 machine ticks
 
 /* Notes:
 */
+envelope_t flute_instrument1 = {
+
+    .attack_ticks =     8,
+    .attack_count =     127,
+    .decay_ticks =      8,
+    .decay_count =      20,
+    .sustain_ticks =    4096,
+    .sustain_hold =     1,
+    .release_ticks =    16,
+    .release_count =    107,
+};
 
 envelope_t flute_instrument2 = {
 
@@ -96,14 +108,14 @@ wdt_disable();
 
     /* Initalize Voices */
     //voices[0].init(t_pulse, flute_instrument);
-    voices[0].init(t_sin, flute_instrument2);
+    voices[0].init(t_sin, flute_instrument1);
     //voices[0].init(t_triangle, flute_instrument);
     //voices[0].init(t_noise, flute_instrument);
-    voices[1].init(t_sin, flute_instrument2);
+    voices[1].init(t_triangle, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
 
     //voices[2].init(t_triangle, flute_instrument2);
-    voices[2].init(t_sin, flute_instrument2);
+    voices[2].init(t_sawtooth, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
     //voices[2].init(t_noise, flute_instrument2);
 
@@ -119,8 +131,8 @@ wdt_disable();
     TCCR0A = 0;
     TCCR0B = 0;
 
-    //OCR0A = ((CPU_SPEED/8)/LOOP_RATE) +1;
-    OCR0A = ((CPU_SPEED/64)/LOOP_RATE) +1;
+    //OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE) +1;
+    OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE) +1;
     OCR0B =0;
     //TCCR0B |= (1 << CS01); // divide 8 prescale
     TCCR0B |= ( (1 << CS00) | (1 << CS01)); // divide 64 prescale

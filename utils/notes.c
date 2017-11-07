@@ -22,7 +22,7 @@ int table_mode = 0;
 
 /* Machine timing */
 const double machine_frequency  = CPU_SPEED;
-const double sample_frequency   = SAMPLE_RATE;
+const double sample_frequency   = TONE_CLOCK;
 
 double machine_period = 1 / machine_frequency;
 double timer_ticks_per_sample = machine_frequency / sample_frequency; 
