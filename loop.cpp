@@ -15,6 +15,8 @@
     2) - polyphony per channel?
     3) - update linux emulator for new timer scheme
     4) - cirbuf static, fix cirbuf impl
+    5) - voice pools
+
 */
 
 #include <Arduino.h>
@@ -36,6 +38,7 @@ extern "C" {
 #include "Voice.h"
 #include "Envelope.h"
 #include "midi.h"
+#include "instruments.h"
 
 using namespace SoftSynth;
 
@@ -56,6 +59,7 @@ Synth timer (samples) will need 363 machine ticks
 
 /* Notes:
 */
+#if 0
 envelope_t flute_instrument1 = {
 
     .attack_ticks =     8,
@@ -91,6 +95,7 @@ envelope_t fatty_base_instrument1 = {
     .release_ticks =    128,
     .release_count =    107,
 };
+#endif
 
 
 #if 0
@@ -156,7 +161,7 @@ wdt_disable();
 
     
 #if 1
-    //Defaults for timer registers
+    //Defaults for timer1 registers
     TCCR1A = 0;
     TCCR1B = 0;
 
