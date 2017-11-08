@@ -122,7 +122,7 @@ void Envelope::step() {
             if (adsr_run.release_ticks == 0) {
                 if (adsr_run.release_count == 0 || adsr_envelope_level == 0) {
                     adsr_state = ADSR_OFF;
-                    adsr_envelope_level == 0; //Hmmm, should probably set sustain level first
+                    adsr_envelope_level = 0; //Hmmm, should probably set sustain level first
                     //adsr_envelope_level = 0; //For now - eliminate later..
                     break;
                 }
