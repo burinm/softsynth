@@ -83,4 +83,23 @@ void Voice::setWaveform(uint8_t (*f)(uint16_t)) {
     wave_function = f;
 }
 
+void Voice::setControl(uint8_t control, uint8_t value) {
+    switch(control) {
+        case   ATTACK_CTRL:
+            envelope.adsr_reset.attack_count = value;
+            break;
+        case   DECAY_CTRL:
+            envelope.adsr_reset.decay_count = value;
+            break;
+        case   SUSTAIN_CTRL:
+            envelope.adsr_reset.sustain_hold = value;
+            break;
+        case   RELEASE_CTRL:
+            envelope.adsr_reset.release_count = value;
+            break;
+        default:
+            break;
+    }
+}
+
 }

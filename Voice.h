@@ -15,6 +15,12 @@ extern "C" {
 
 namespace SoftSynth {
 
+enum VOICE_CONTROLS { ATTACK_CTRL = 14,
+                      DECAY_CTRL = 15,
+                      SUSTAIN_CTRL = 16,
+                      RELEASE_CTRL = 17
+                    };
+
 class Voice {
     public:
         static const uint16_t note_phase_mult_table[128];
@@ -25,6 +31,7 @@ class Voice {
         void step(uint16_t);
 
         void setWaveform(uint8_t (*wave_function)(uint16_t));
+        void setControl(uint8_t control, uint8_t value);
 
 #if 0
         inline uint8_t Voice::sample() {

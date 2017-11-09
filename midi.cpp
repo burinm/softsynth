@@ -19,6 +19,7 @@ circbuf_tiny_t midi_buf;
 
 static uint8_t midi_running_status = MIDI_STATUS_NOTE_OFF;
 static uint8_t midi_current_channel = MIDI_DEFAULT_CHANNEL;
+static uint8_t midi_current_control = 0;
 
 void midi_init() {
     /* initialize midi buffer */
@@ -45,43 +46,53 @@ void process_midi_messages() {
             midi_current_channel = byte_out & MIDI_STATUS_CHANNEL_MASK;
 
             if (midi_running_status == MIDI_STATUS_RESET) {
-                //synth.reset();
+                //TODO: synth.reset();
             }
         } else {
 
-
-            switch(midi_running_status) {
-                case    MIDI_STATUS_NOTE_ON:
-//fprintf(stderr,"Note on-->%d",byte_out);
-                    if (midi_byte_number == 0) {
-                        if(midi_current_channel < max_voices) {
+            if (midi_current_channel < max_voices) {
+                switch(midi_running_status) {
+                    case    MIDI_STATUS_NOTE_ON:
+    //fprintf(stderr,"Note on-->%d",byte_out);
+                        if (midi_byte_number == 0) {
                             voices[midi_current_channel].startNote(byte_out);
+                            midi_byte_number++;
+                            break;
                         }
-                        midi_byte_number++;
-                        break;
-                    }
 
-                    if (midi_byte_number == 1) {
-                        if (byte_out == 0 ) { //zero velocity = NOTE_OFF
-                            if(midi_current_channel < max_voices) {
-                                voices[midi_current_channel].stopNote();
+                        if (midi_byte_number == 1) {
+                            if (byte_out == 0 ) { //zero velocity = NOTE_OFF
+                                    voices[midi_current_channel].stopNote();
                             }
+                            //voice0.velocity = byte_out;
+                            midi_byte_number=0;
+                            break;
                         }
-                        //voice0.velocity = byte_out;
-                        midi_byte_number=0;
                         break;
-                    }
-                    break;
-                case    MIDI_STATUS_NOTE_OFF:
-//fprintf(stderr,"Note off-->0x%x",byte_out);
-                        if(midi_current_channel < max_voices) {
-                            voices[midi_current_channel].stopNote();
+                    case    MIDI_STATUS_NOTE_OFF:
+    //fprintf(stderr,"Note off-->0x%x",byte_out);
+                                voices[midi_current_channel].stopNote();
+                            midi_byte_number=0;
+                        break;
+                    case    MIDI_STATUS_CONTROL:
+                        if (midi_byte_number == 0) {
+                            midi_current_control = byte_out;
+                            midi_byte_number++;
+                            break;
                         }
-                        midi_byte_number=0;
-                    break;
-                default:
-                    midi_byte_number = 0;
-                    break;
+
+                        if (midi_byte_number == 1) {
+                            voices[midi_current_channel].setControl(midi_current_control,byte_out);
+                            midi_byte_number=0;
+                            break;
+                        }
+
+
+                        break;
+                    default:
+                        midi_byte_number = 0;
+                        break;
+                }
             }
         #endif //end midi processing
 

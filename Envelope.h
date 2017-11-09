@@ -60,13 +60,13 @@ class Envelope {
         inline adsr_state_t getState(void) { return adsr_state; };
 
         uint16_t apply_envelope(uint8_t);
+        envelope_t  adsr_reset;    //Reset values for envelope
 
     private:
         uint8_t adsr_envelope_level;
         adsr_state_t adsr_state;
 
         envelope_t  adsr_run;      //Running count of envelope parameters
-        envelope_t  adsr_reset;    //Reset values for envelope
 };
 
 }
