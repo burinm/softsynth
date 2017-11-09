@@ -22,7 +22,7 @@ extern "C" {
 #define MIDI_DATA_MASK                 0x7F
 #define MIDI_STATUS_TYPE_OFFSET        4 
 #define MIDI_STATUS_TYPE_MASK          (0x7 << MIDI_STATUS_TYPE_OFFSET)
-#define MIDI_STATUS_CHANNEL_MASK         0xf
+#define MIDI_STATUS_CHANNEL_MASK       0xf
 
 #define MIDI_STATUS_NOTE_OFF                0x0
 #define MIDI_STATUS_NOTE_ON                 0x1
@@ -48,8 +48,5 @@ extern circbuf_tiny_t midi_buf;
 
 void midi_init();
 void process_midi_messages();
-
-
-
 
 #endif

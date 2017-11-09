@@ -11,12 +11,9 @@ extern "C" {
     #include <stdint.h> //avr-g++ doesn't support <cstdint>??
 }
 
-
-
 #include "Envelope.h"
 
 namespace SoftSynth {
-
 
 class Voice {
     public:

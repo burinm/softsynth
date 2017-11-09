@@ -49,81 +49,16 @@ Voice voices[max_voices];
 
 extern circbuf_tiny_t midi_buf;
 
-/*
-We are tuning to A at    440.000 Hz
-Machine is running at 16000000.000 Hz
-Samples are at         44100.000 Hz
-Synth timer (samples) will need 363 machine ticks
--------------------------------------------------
-*/
-
-/* Notes:
-*/
-#if 0
-envelope_t flute_instrument1 = {
-
-    .attack_ticks =     8,
-    .attack_count =     127,
-    .decay_ticks =      8,
-    .decay_count =      20,
-    .sustain_ticks =    4096,
-    .sustain_hold =     1,
-    .release_ticks =    64,
-    .release_count =    107,
-};
-
-envelope_t flute_instrument2 = {
-
-    .attack_ticks =     1,
-    .attack_count =     127,
-    .decay_ticks =      0,
-    .decay_count =      0,
-    .sustain_ticks =    4096,
-    .sustain_hold =     1,
-    .release_ticks =    16,
-    .release_count =    107,
-};
-
-envelope_t fatty_base_instrument1 = {
-
-    .attack_ticks =     1,
-    .attack_count =     127,
-    .decay_ticks =      0,
-    .decay_count =      0,
-    .sustain_ticks =    8192,
-    .sustain_hold =     1,
-    .release_ticks =    128,
-    .release_count =    107,
-};
-#endif
-
-
-#if 0
-static int8_t dither_random_table[128] = {
-    1,1,-2,0,0,0,-1,1,1,1,-2,-1,1,0,0,0,
-    0,1,-1,1,2,0,0,1,0,-1,-2,0,2,0,-1,0,
-    -2,-1,2,1,-2,-1,0,-1,0,0,0,1,2,-1,-1,-2,
-    0,0,-1,0,0,1,0,2,-1,-2,1,0,2,2,-2,2,
-    1,-1,1,2,-1,1,-1,1,-1,0,-1,2,1,1,-1,0,
-    0,1,0,0,1,-1,0,1,0,-2,-1,1,2,0,0,-1,
-    1,-1,-2,0,0,-2,-2,0,-2,-1,0,-2,0,0,1,-1,
-    2,2,-1,-2,2,-1,0,-2,1,-1,0,0,0,-1,-1,-2,
-};
-#endif
-
-
-
 void setup() {
 wdt_disable();
     // set the digital pin as output:  
 
-    //8-bit digital sound out
-    DDRD = 0B11111110; //pins 6-7 output, sound lsb, pin2-5 debug, pins 0-1 reserved for UART
-    //DDRD = 0B11111111;
+    //12-bit digital sound out
+    DDRD = 0B11111110; //pins 2-7 (sound lsb), pins 0-1 reserved for UART
     PORTD = 0x0;
 
     //8-bit sound out msb
-    DDRB = 0B00111111; //pins 0-5 output, sound msb
+    DDRB = 0B00111111; //pins 0-5 (sound msb)
 
     /* Initalize Voices */
     //voices[0].init(t_pulse, flute_instrument);
@@ -147,6 +82,7 @@ wdt_disable();
     //Interrupts of to setup timers
     cli();
 
+// Timer 0, for Sample Loop
     //Defaults for timer0 registers
     TCCR0A = 0;
     TCCR0B = 0;
@@ -160,17 +96,13 @@ wdt_disable();
     TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
 
     
-#if 1
+// Timer 1, 16bit timer, overflow for Tone Clock
     //Defaults for timer1 registers
     TCCR1A = 0;
     TCCR1B = 0;
 
-    // Timer 1, 16bit timer
     OCR1A = 0; //Full 16 bits
-    //TCCR1B |= (1 << WGM12 );   // CTC mode, top is OCR1A
     TCCR1B |= (1 << CS12);    // divide 256 prescaler
-    //TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
-#endif
 
 
 //override some gcc stuff...
@@ -200,11 +132,7 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     /* Init midi and midi buffer */
     midi_init();
 
-
-
     sei();
-
-
 }
 
 ISR(BADISR_vect)
@@ -212,33 +140,22 @@ ISR(BADISR_vect)
 //PORTD |=0xf0;
 }
 
-#if 0
-//vector_16.....grrrr timer zero overflow default
-ISR(TIMER0_OVF_vect )
-{
-
-}
-#endif
 
 void loop()
 {
-
-;    set_sleep_mode(SLEEP_MODE_IDLE);
-;    sleep_enable();
-;    sleep_mode();
+    set_sleep_mode(SLEEP_MODE_IDLE);
+    sleep_enable();
+    sleep_mode();
 }
-
-//Update Synth routine
-ISR(TIMER0_COMPA_vect) { //(45us allowed)                                                  //17.02 running, 14.60us
-//static uint16_t synth_clock=0;
 
 //For speed, don't allocate these every time
 static uint16_t mixer;
 static uint8_t sample;
 static uint8_t i=0;
-//static uint16_t random_number2 = 0;
-//static uint16_t random_number_count = 0;
 static uint16_t fast_timer=0;
+
+
+ISR(TIMER0_COMPA_vect) { //Update output sample routine
 
 //interrupts should be off inside here 
 fast_timer= TCNT1;
@@ -264,35 +181,18 @@ fast_timer= TCNT1;
     PORTB = (mixer & 0x3f00) >>8;
     //PORTB = (0xfff>>6) & (0x3f);
 
-    process_midi_messages();                 // 1.2us
+    process_midi_messages();
 
-                                             //11.6us running
 ERROR_SET(ERROR_MARK);
-#if 1
     mixer=0;
     for (i=0;i<max_voices;i++) {
-        voices[i].step(fast_timer);                       //7.6us running
-        mixer += (voices[i].sample());          //5.0us running
+        voices[i].step(fast_timer);
+        mixer += (voices[i].sample());
     }
-#endif
 ERROR_SET(ERROR_MARK);
-
-    #if 0
-    //Dithering
-    if (random_number_count == 8000) {                          //2.96us
-        random_number_count = 0;
-        random_number2++;
-        if (random_number2 == 128) { random_number2 = 0; }
-    }
-    random_number_count++;
-
-    mixer += dither_random_table[random_number2];
-    #endif
 
     mixer <<= 2; //Only using 10bits right now
     //mixer &= (0xfff); //12 bit audio mask
-
-    //sample = (uint8_t)(mixer & 0xff);
 }
 
 ISR(USART_RX_vect) {

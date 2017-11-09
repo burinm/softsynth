@@ -109,8 +109,6 @@ uint8_t note = 57;
     voices[1].init(t_pulse,flute_instrument2);
     voices[2].init(t_sawtooth,flute_instrument2);
     voices[3].init(t_triangle,flute_instrument1);
-    //voices[4].init(t_noise,flute_instrument1);
-
 
     setup_timer();
 
@@ -165,7 +163,6 @@ void timer0_sample_loop(int sig, siginfo_t *si, void *uc) {
     }
      //mixer <<= 2;
      mixer <<= 4; //adjust volume (16bit dac, with only 12 bits)
-
 }
 
 void ctrl_c(int) {

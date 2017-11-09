@@ -33,7 +33,6 @@ void Envelope::init(envelope_t &e) {
     adsr_envelope_level = 0;
     adsr_state = ADSR_OFF;
 
-    //adsr_reset = e;
     adsr_reset.attack_ticks = e.attack_ticks;
     adsr_reset.attack_count = e.attack_count;
 
@@ -46,7 +45,6 @@ void Envelope::init(envelope_t &e) {
     adsr_reset.release_ticks = e.release_ticks;
     adsr_reset.release_count = e.release_count;
 
-    
 
     adsr_run.attack_ticks = 0;
     adsr_run.attack_count = 0;
@@ -65,8 +63,6 @@ void Envelope::start() {
     adsr_envelope_level = 0;
     adsr_state = ADSR_ATTACK;
 
-    //adsr_run = adsr_reset; //5us!!
-#if 1
     adsr_run.attack_ticks = adsr_reset.attack_ticks;
     adsr_run.attack_count = adsr_reset.attack_count;
 
@@ -78,7 +74,6 @@ void Envelope::start() {
 
     adsr_run.release_ticks = adsr_reset.release_ticks;
     adsr_run.release_count = adsr_reset.release_count;
-#endif
 }
 
 void Envelope::step() {
@@ -90,7 +85,7 @@ void Envelope::step() {
         case ADSR_ATTACK:
             if(adsr_run.attack_ticks == 0) {
                 if (adsr_run.attack_count == 0) { adsr_state=ADSR_DECAY; break;}
-                adsr_envelope_level++; //volume up exponentially
+                adsr_envelope_level++; //volume up
                 adsr_run.attack_count--;
 
                 adsr_run.attack_ticks=adsr_reset.attack_ticks;
@@ -101,7 +96,7 @@ void Envelope::step() {
         case ADSR_DECAY:
             if (adsr_run.decay_ticks == 0) {
                 if (adsr_run.decay_count == 0) { adsr_state=ADSR_SUSTAIN; break;}
-                adsr_envelope_level--; //volume down exponentially
+                adsr_envelope_level--; //volume down
                 adsr_run.decay_count--;
 
                 adsr_run.decay_ticks=adsr_reset.decay_ticks;
@@ -123,10 +118,9 @@ void Envelope::step() {
                 if (adsr_run.release_count == 0 || adsr_envelope_level == 0) {
                     adsr_state = ADSR_OFF;
                     adsr_envelope_level = 0; //Hmmm, should probably set sustain level first
-                    //adsr_envelope_level = 0; //For now - eliminate later..
                     break;
                 }
-                adsr_envelope_level--; //volume down exponentially
+                adsr_envelope_level--; //volume down
                 adsr_run.release_count--;
 
                 adsr_run.release_ticks=adsr_reset.release_ticks;
@@ -157,7 +151,6 @@ uint16_t amplitude;
     }
 return amplitude;
 }
-
 
 }
 

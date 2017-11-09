@@ -47,14 +47,14 @@ void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
 
 void Voice::step(uint16_t t) {
 
-    phase = t * note_phase_mult_table[GET_NOTE(current_note)];            //?us
-    //phase = phase % PARTS_PER_CYCLE; //automatic 16bit rollover
-    envelope.step();                                                //1.92us
+    // Automatic 16bit rollover (i.e. phase % PARTS_PER_CYCLE)
+    phase = t * note_phase_mult_table[GET_NOTE(current_note)];
+    envelope.step();
 }
 
 void Voice::startNote(uint8_t midinote) {
     SET_NOTE(current_note,midinote);
-    envelope.start();                                       //3.44us
+    envelope.start();
     random_reset();
 } 
 
@@ -68,12 +68,12 @@ uint8_t Voice::sample() {
 uint8_t wave;
 uint16_t amplitude;
 
-    if (envelope.getState() ) { //Not ADSR_OFF
-        wave = wave_function(phase);                                    //2.4us
+    if (envelope.getState() ) { // == not ADSR_OFF
+        wave = wave_function(phase);
     }
 
     //If envelope generator is off, wave value is don't-care
-    amplitude = envelope.apply_envelope(wave);                      //2.4us
+    amplitude = envelope.apply_envelope(wave);
 
 return (uint8_t)amplitude;
 return (wave);

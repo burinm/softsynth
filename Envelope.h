@@ -22,15 +22,17 @@ typedef enum ADSR_STATE_TYPE { ADSR_OFF=0,
 } adsr_state_t;
 
 
-//Envelope segment lengths go for x*y (ticks*counts),
-// and will change the envelope_level by y counts.
-//  Slope = y/x
-//  When choosing values, the following constraints
-//
-//         Envelope has 127 levels (y)
-//         127 => Total Attack => (Release + Decay)
-//
-//  100ms = 4407 cycles (counts)
+/*
+  Envelope segment lengths go for x*y (ticks*counts),
+   and will change the envelope_level by y counts.
+    Slope = y/x
+    When choosing values, the following constraints
+
+         Envelope has 127 levels (y)
+         127 => Total Attack => (Release + Decay)
+
+    100ms = 4407 cycles (counts)
+*/
 typedef struct {
     uint16_t attack_ticks;
     uint8_t attack_count;
@@ -65,14 +67,8 @@ class Envelope {
 
         envelope_t  adsr_run;      //Running count of envelope parameters
         envelope_t  adsr_reset;    //Reset values for envelope
-
-
-
 };
 
 }
-
-
-
 
 #endif
