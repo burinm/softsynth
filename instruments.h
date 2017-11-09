@@ -39,5 +39,17 @@ envelope_t fatty_base_instrument1 = {
     .release_count =    107,
 };
 
+envelope_t drum_instrument1 = {
+
+    .attack_ticks =     1,
+    .attack_count =     127,
+    .decay_ticks =      16,
+    .decay_count =      5,
+    .sustain_ticks =    0,
+    .sustain_hold =     0,
+    .release_ticks =    16,
+    .release_count =    122,
+};
+
 
 #endif

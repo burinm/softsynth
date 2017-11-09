@@ -12,6 +12,7 @@
     2) - fix envelope generator
         o click gone
         o need to check steps
+        o Bug when Decay control is set, Sustain button doesn't work
     2) - polyphony per channel?
     3) - update linux emulator for new timer scheme
     4) - cirbuf static, fix cirbuf impl
@@ -69,9 +70,9 @@ wdt_disable();
     //voices[2].init(t_sawtooth, flute_instrument2);
 
     //voices[2].init(t_triangle, flute_instrument2);
-    voices[2].init(t_sawtooth, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
-    //voices[2].init(t_noise, flute_instrument2);
+    //voices[2].init(t_sawtooth, flute_instrument2);
+    voices[2].init(t_noise, drum_instrument1);
 
 
     //voices[3].init(t_noise, flute_instrument2);
