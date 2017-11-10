@@ -14,28 +14,30 @@ int main() {
 
 
 
-uint16_t i_max = WAVE_TABLE_QUANT;
+uint16_t quant_part = PARTS_PER_CYCLE/WAVE_TABLE_QUANT;
+double half_amplitude = MAX_AMPLITUDE/2;
 
 printf("/*\n    Quarter sin wave, will mirror the other 3/4\n");
-printf("    Sin quantization limited to %d parts\n", i_max);
 printf("    360 degrees = %d units, this table is 0-%d (1/4)\n",PARTS_PER_CYCLE,WAVE_TABLE_QUANT-1);
-printf("    Max Amplitude %d\n*/\n",MAX_AMPLITUDE);
+printf("    Sin quantization limited to %d parts, each part = *%d\n", WAVE_TABLE_QUANT,quant_part);
+printf("    Max Amplitude %d only need to encode 1/2 amplitude %d\n*/\n",MAX_AMPLITUDE,(uint16_t)half_amplitude);
 
-printf("const uint8_t t_sine_table[%d] = {\n",i_max);
+printf("const uint8_t t_sine_table[%d] = {\n",WAVE_TABLE_QUANT);
 
-double max_amplitude = MAX_AMPLITUDE;
-for (uint16_t i=0;i<i_max;i++) {
+for (uint16_t i=0;i<WAVE_TABLE_QUANT;i++) {
 
     //Quarter sin wave, will mirror the other 3/4
-    double phase =  M_PI_2  * ((double)i / (i_max-1));
-    double tone = max_amplitude + (max_amplitude * sin(phase + M_PI + M_PI_2));
+    double phase =  M_PI_2  * ((double)((i+1) * quant_part) / (PARTS_PER_CYCLE-1));
+    double tone = half_amplitude + (half_amplitude * sin(phase + M_PI + M_PI_2));
     uint8_t tone_int = (uint8_t)tone;
 
     printf("%3d",tone_int);
-    if (i<i_max -1) { printf(","); }
+    if (i<WAVE_TABLE_QUANT -1) { printf(","); }
     if ( (i+1) % 16 == 0) { printf("\n"); }
+
 }
 
 printf("};\n");
+
 return 0;
 }
