@@ -76,6 +76,14 @@ void Envelope::start() {
     adsr_run.release_count = adsr_reset.release_count;
 }
 
+
+#if 0
+void Envelope::step() {
+    adsr_envelope_level = 127;
+}
+#endif
+
+#if 1
 void Envelope::step() {
 
     switch (adsr_state) {
@@ -130,6 +138,7 @@ void Envelope::step() {
     }
 
 }
+#endif
 
 uint16_t Envelope::apply_envelope(uint8_t wave) {
 uint16_t amplitude;
@@ -137,16 +146,21 @@ uint16_t amplitude;
 //TODO: Put all these constants in the hardware table?
 
     if (adsr_envelope_level == 0) {
-        amplitude = 128;
+        amplitude = 127; //Helps with pops/clicks during note change
     } else {
-        //Positive voltage is 255 -> 127,  Adjusts 127 -> 0, result 128 <-> 255
-        if (wave > 126) {
-            amplitude = ((wave-127) *  envelope_table[adsr_envelope_level]) >>8;
-            amplitude += 128;
-        //Negative voltage is 126 -> 0, Adjusts 0 -> 126, result = 1 <-> 127
+        //Zero voltage
+        if(wave == 127) {
+            amplitude = 127;
         } else {
-            amplitude = ((127-wave) *  envelope_table[adsr_envelope_level]) >>8;
-            amplitude = 127-amplitude;
+            //Positive voltage is 255 -> 128
+            if (wave > 127) {
+                amplitude = (uint16_t)((wave-127) *  envelope_table[adsr_envelope_level]) >>8;
+                amplitude += 128;
+            //Negative voltage is 126 -> 0
+            } else {
+                amplitude = (uint16_t)((127-wave) *  envelope_table[adsr_envelope_level]) >>8;
+                amplitude = 126-amplitude;
+            }
         }
     }
 return amplitude;

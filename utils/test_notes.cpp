@@ -126,7 +126,7 @@ struct timespec read_time;
 void timer0_sample_loop(int sig, siginfo_t *si, void *uc) {
 
     /* Output signal first to avoid jitter? */
-    uint8_t low_byte = (uint8_t)(mixer &0xff);
+    uint8_t low_byte = (uint8_t)(mixer & 0xff);
     uint8_t hi_byte = (uint8_t)(mixer >> 8);
     fwrite(&low_byte,1,1,stdout);
     fwrite(&hi_byte,1,1,stdout);

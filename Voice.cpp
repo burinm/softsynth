@@ -68,7 +68,9 @@ uint8_t Voice::sample() {
 uint8_t wave;
 uint16_t amplitude;
 
-    if (envelope.getState() ) { // == not ADSR_OFF
+    if (envelope.getState() == ADSR_OFF ) {
+        return 0;
+    } else {
         wave = wave_function(phase);
     }
 
@@ -76,7 +78,7 @@ uint16_t amplitude;
     amplitude = envelope.apply_envelope(wave);
 
 return (uint8_t)amplitude;
-return (wave);
+//return (wave);
 }
 
 void Voice::setWaveform(uint8_t (*f)(uint16_t)) {

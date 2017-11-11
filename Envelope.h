@@ -62,6 +62,8 @@ class Envelope {
         uint16_t apply_envelope(uint8_t);
         envelope_t  adsr_reset;    //Reset values for envelope
 
+        void test_set_adsr_envelope_level(uint8_t l) {adsr_envelope_level = l;}
+
     private:
         uint8_t adsr_envelope_level;
         adsr_state_t adsr_state;

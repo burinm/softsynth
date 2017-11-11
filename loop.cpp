@@ -55,7 +55,7 @@ wdt_disable();
     // set the digital pin as output:  
 
     //12-bit digital sound out
-    DDRD = 0B11111110; //pins 2-7 (sound lsb), pins 0-1 reserved for UART
+    DDRD = 0B11111110; //pins 2-7 (sound lsb), pin 1 reserved for debug, pin 0 reserved for UART RX
     PORTD = 0x0;
 
     //8-bit sound out msb
@@ -155,11 +155,14 @@ static uint8_t sample;
 static uint8_t i=0;
 static uint16_t fast_timer=0;
 
+static uint8_t portd_tmp;
+
 
 ISR(TIMER0_COMPA_vect) { //Update output sample routine
 
 //interrupts should be off inside here 
 fast_timer= TCNT1;
+
 
 // Play sample first thing for timing reasons. This means notes
 //  will possibly be behind 1/22.05Hz
@@ -171,25 +174,27 @@ fast_timer= TCNT1;
 // since just the lowest two bits may not synchonize.
 
 
-    //Highest two bits set to audio lsb, Lower 2 bits reserved for UART
+    //Highest 6 bits set to audio lsb, Lower 2 bits reserved for debug, UART RX
     // This also leaves debug bits 2-5 alone
-    //PORTD |= sample<<6;
-    mixer <<= 2;
-    PORTD |= (mixer & 0xFC);
-    //PORTD |= (0xfff<<2) & 0xFC;
+    portd_tmp = (PORTD & 0x3);
+    PORTD = portd_tmp | ((uint8_t)(mixer & 0x3F) << 2);
 
     //Put most significant bits here, so they all change at once
-    PORTB = (mixer & 0x3f00) >>8;
-    //PORTB = (0xfff>>6) & (0x3f);
+    PORTB = (mixer & 0xFC0) >>6;
 
     process_midi_messages();
 
 ERROR_SET(ERROR_MARK);
     mixer=0;
+#if 1
     for (i=0;i<max_voices;i++) {
         voices[i].step(fast_timer);
         mixer += (voices[i].sample());
     }
+#endif
+    //voices[0].step(fast_timer);
+    //mixer = voices[0].sample();
+
 ERROR_SET(ERROR_MARK);
 
     mixer <<= 2; //Only using 10bits right now
