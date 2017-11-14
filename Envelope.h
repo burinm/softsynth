@@ -59,7 +59,11 @@ class Envelope {
         inline void setState(adsr_state_t s) { adsr_state = s; };
         inline adsr_state_t getState(void) { return adsr_state; };
 
-        uint16_t apply_envelope(uint8_t);
+        inline uint16_t apply_envelope(uint8_t wave) {
+             //Don't seem to need artificial DC adjustment, blocking cap seems to take care of this
+             return ( ((uint16_t)(wave) *  envelope_table[adsr_envelope_level]) >>8);
+        }
+
         envelope_t  adsr_reset;    //Reset values for envelope
 
         void test_set_adsr_envelope_level(uint8_t l) {adsr_envelope_level = l;}

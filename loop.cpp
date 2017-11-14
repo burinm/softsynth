@@ -162,9 +162,21 @@ static uint8_t portd_tmp;
 
 
 ISR(TIMER0_COMPA_vect) { //Update output sample routine
-
 //interrupts should be off inside here 
-fast_timer+= SAMPLE_DIVIDER;
+
+
+/*
+    This seems like a good idea, but reading timer
+     seems to be solid and accurate on this platform
+*/
+//fast_timer+= SAMPLE_DIVIDER;
+
+
+/*
+    Should sychronize serial port interrupt glitches
+     Also, if sample loop runs long, this will resync
+*/
+fast_timer= TCNT1;
 
 
 
@@ -186,9 +198,9 @@ fast_timer+= SAMPLE_DIVIDER;
     //Put most significant bits here, so they all change at once
     PORTB = (mixer & 0xFC0) >>6;
 
-    process_midi_messages();
+    process_midi_messages();            //2us
 
-//ERROR_SET(ERROR_MARK);
+ERROR_SET(ERROR_MARK);                  //24us
     mixer=0;
 #if 1
     for (i=0;i<max_voices;i++) {
@@ -204,7 +216,7 @@ fast_timer+= SAMPLE_DIVIDER;
     mixer += 500; 
 #endif
 
-//ERROR_SET(ERROR_MARK);
+ERROR_SET(ERROR_MARK);
 
     mixer <<= 2; //Only using 10bits right now
     //mixer &= (0xfff); //12 bit audio mask
@@ -212,8 +224,7 @@ fast_timer+= SAMPLE_DIVIDER;
 
 ISR(USART_RX_vect) {
 volatile uint8_t b;
-
-ERROR_SET(ERROR_RECEIVE);
+//ERROR_SET(ERROR_RECEIVE);
 
     if (UCSR0A & (1<<RXC0)) {
         b = (uint8_t)UDR0;
@@ -224,5 +235,5 @@ ERROR_SET(ERROR_RECEIVE);
         /* end critical */
     }
 
-ERROR_SET(ERROR_RECEIVE);
+//ERROR_SET(ERROR_RECEIVE);
 }

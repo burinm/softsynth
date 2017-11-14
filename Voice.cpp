@@ -5,7 +5,6 @@
 */
 
 #include "Voice.h"
-#include "utils/notes.h"
 
 extern "C" {
 #include <stdio.h> //TODO: remove, tesing only
@@ -45,13 +44,6 @@ void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
     envelope.init(e);
 }
 
-void Voice::step(uint16_t t) {
-
-    // Automatic 16bit rollover (i.e. phase % PARTS_PER_CYCLE)
-    phase = t * note_phase_mult_table[GET_NOTE(current_note)];
-    envelope.step();
-}
-
 void Voice::startNote(uint8_t midinote) {
     SET_NOTE(current_note,midinote);
     envelope.start();
@@ -62,23 +54,6 @@ void Voice::stopNote() {
     NOTE_OFF(current_note);
     envelope.setState(ADSR_RELEASE);
     //should we reset envelope here?
-}
-
-uint8_t Voice::sample() {
-uint8_t wave;
-uint16_t amplitude;
-
-    if (envelope.getState() == ADSR_OFF ) {
-        return 0; //This should be 127, but causes hiccup in waveform
-    } else {
-        wave = wave_function(phase);
-    }
-
-    //If envelope generator is off, wave value is don't-care
-    amplitude = envelope.apply_envelope(wave);
-
-return (uint8_t)amplitude;
-//return (wave);
 }
 
 void Voice::setWaveform(uint8_t (*f)(uint16_t)) {
