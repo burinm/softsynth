@@ -143,6 +143,22 @@ void Envelope::step() {
 uint16_t Envelope::apply_envelope(uint8_t wave) {
 uint16_t amplitude;
 
+/* This routine scales the amplitude according to the levels in
+    envelope_table[level]. Amplitudes represented internally
+    are values 0-255. The DC blocking cap (47uF) will offset
+    the signal so that the middle values are around 0 volts.
+    
+    Choose:
+           255->128 positive voltage
+                127 to be the middle,
+           126-> 0  negative voltage
+
+    This routine scales the AC output from both sides around 
+     the middle - an envelope, as opposed to just multiplying
+     the signal by the scale
+*/
+
+
 //TODO: Put all these constants in the hardware table?
 
     if (adsr_envelope_level == 0) {

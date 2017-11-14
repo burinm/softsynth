@@ -37,8 +37,8 @@ e.init(test_instrument);
 e.start();
 e.test_set_adsr_envelope_level(127);
 
-wave_function=t_sin;
-//wave_function=t_triangle;
+//wave_function=t_sin;
+wave_function=t_triangle;
 //wave_function=t_pulse;
 //wave_function=t_sawtooth;
 //wave_function=t_noise;

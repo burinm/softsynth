@@ -69,7 +69,7 @@ uint8_t wave;
 uint16_t amplitude;
 
     if (envelope.getState() == ADSR_OFF ) {
-        return 0;
+        return 0; //This should be 127, but causes hiccup in waveform
     } else {
         wave = wave_function(phase);
     }
@@ -87,17 +87,30 @@ void Voice::setWaveform(uint8_t (*f)(uint16_t)) {
 
 void Voice::setControl(uint8_t control, uint8_t value) {
     switch(control) {
-        case   ATTACK_CTRL:
+        case   ATTACK_COUNT_CTRL:
             envelope.adsr_reset.attack_count = value;
             break;
-        case   DECAY_CTRL:
+        case   DECAY_COUNT_CTRL:
             envelope.adsr_reset.decay_count = value;
             break;
-        case   SUSTAIN_CTRL:
+        case   SUSTAIN_COUNT_CTRL:
             envelope.adsr_reset.sustain_hold = value;
             break;
-        case   RELEASE_CTRL:
+        case   RELEASE_COUNT_CTRL:
             envelope.adsr_reset.release_count = value;
+            break;
+
+        case   ATTACK_TICKS_CTRL:
+            envelope.adsr_reset.attack_ticks = value;
+            break;
+        case   DECAY_TICKS_CTRL:
+            envelope.adsr_reset.decay_ticks = value;
+            break;
+        case   SUSTAIN_TICKS_CTRL:
+            envelope.adsr_reset.sustain_ticks = value;
+            break;
+        case   RELEASE_TICKS_CTRL:
+            envelope.adsr_reset.release_ticks = value;
             break;
         default:
             break;

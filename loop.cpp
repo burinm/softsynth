@@ -62,10 +62,11 @@ wdt_disable();
     DDRB = 0B00111111; //pins 0-5 (sound msb)
 
     /* Initalize Voices */
-    //voices[0].init(t_pulse, flute_instrument);
-    voices[0].init(t_sin, flute_instrument1);
+    //voices[0].init(t_pulse, flute_instrument1);
+    voices[0].init(t_sin, fatty_base_instrument1);
     //voices[0].init(t_triangle, flute_instrument);
     //voices[0].init(t_noise, flute_instrument);
+
     voices[1].init(t_pulse, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
 
@@ -184,7 +185,7 @@ fast_timer= TCNT1;
 
     process_midi_messages();
 
-ERROR_SET(ERROR_MARK);
+//ERROR_SET(ERROR_MARK);
     mixer=0;
 #if 1
     for (i=0;i<max_voices;i++) {
@@ -192,10 +193,15 @@ ERROR_SET(ERROR_MARK);
         mixer += (voices[i].sample());
     }
 #endif
-    //voices[0].step(fast_timer);
-    //mixer = voices[0].sample();
 
-ERROR_SET(ERROR_MARK);
+#if 0
+    voices[0].step(fast_timer);
+    mixer = voices[0].sample();
+    //mixer += (127 + 127 + 127); //381
+    mixer += 500; 
+#endif
+
+//ERROR_SET(ERROR_MARK);
 
     mixer <<= 2; //Only using 10bits right now
     //mixer &= (0xfff); //12 bit audio mask

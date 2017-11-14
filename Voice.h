@@ -15,10 +15,16 @@ extern "C" {
 
 namespace SoftSynth {
 
-enum VOICE_CONTROLS { ATTACK_CTRL = 14,
-                      DECAY_CTRL = 15,
-                      SUSTAIN_CTRL = 16,
-                      RELEASE_CTRL = 17
+enum VOICE_CONTROLS {
+                      ATTACK_COUNT_CTRL = 14,
+                      DECAY_COUNT_CTRL = 15,
+                      SUSTAIN_COUNT_CTRL = 16,
+                      RELEASE_COUNT_CTRL = 17,
+
+                      ATTACK_TICKS_CTRL = 18,
+                      DECAY_TICKS_CTRL = 19,
+                      SUSTAIN_TICKS_CTRL = 20,
+                      RELEASE_TICKS_CTRL = 21 
                     };
 
 class Voice {
