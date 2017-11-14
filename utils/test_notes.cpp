@@ -28,7 +28,28 @@ void setup_timer();
 
 
 void setup_timer() {
-#define FREQUENCY_SAMPLE_CLOCK  90703 //11025Hz
+//#define FREQUENCY_SAMPLE_CLOCK  90703 //11025Hz
+#define FREQUENCY_SAMPLE_CLOCK  64000 //15625Hz
+
+/*
+    The Atmel328p runs 16MHz, with a divide by 256 scaled clock
+    for the sample loop - 16MHz/256 = 62500
+
+    In the linux port, the most stable way to track this seems
+    to be assuming the sample loop signal popping is accurate.
+    Measuring the time with clock_gettime(MONOTONIC) causes jitters.
+
+    In order to use the same counting mechanism where 2^16
+    represents one cycle, match the Atmel328p clock rate
+    with an exact multiple, the closest one is
+
+    62500/4 = 15625 
+
+    This way fast_timer +=4 can be used in the loop
+*/
+
+#define FREQUENCY_SAMPLE_CLOCK  64000 //15625Hz
+
 
 /* Copied almost verbatim from timer_create(2) man page
     Linux Programmer's Manual
@@ -89,7 +110,7 @@ static struct sigaction loop_sa;
 
 /* Voices */
 extern const uint8_t max_voices;
-const uint8_t max_voices=4;
+const uint8_t max_voices=6;
 Voice voices[max_voices]; //TODO: figure out who owns this initialization
 //static uint16_t i=0;
 int main(int argc, char* argv[]) {
@@ -107,8 +128,10 @@ uint8_t note = 57;
 
     voices[0].init(t_sin,flute_instrument1);
     voices[1].init(t_pulse,flute_instrument2);
-    voices[2].init(t_sawtooth,flute_instrument2);
-    voices[3].init(t_triangle,flute_instrument1);
+    voices[2].init(t_noise,drum_instrument1);
+    voices[3].init(t_sawtooth,flute_instrument2);
+    voices[4].init(t_pulse,fatty_base_instrument1);
+    voices[5].init(t_pulse,fatty_base_instrument1);
 
     setup_timer();
 
@@ -119,9 +142,6 @@ uint8_t note = 57;
 
 static uint16_t mixer=0;
 static uint16_t fast_timer=0;
-static long prev_tone_clock;
-struct timespec read_time;
-
 
 void timer0_sample_loop(int sig, siginfo_t *si, void *uc) {
 
@@ -131,28 +151,7 @@ void timer0_sample_loop(int sig, siginfo_t *si, void *uc) {
     fwrite(&low_byte,1,1,stdout);
     fwrite(&hi_byte,1,1,stdout);
 
-    if (clock_gettime(CLOCK_MONOTONIC, &read_time) != 0) {
-        fprintf(stderr, "Could not read CLOCK_MONOTONIC\n");
-        ctrl_c(0); //TODO: send a signal here
-    }
-
-    long n_seconds;
-
-    //This assumes that this Signal gets called within 1 second
-    //TODO: start case when prev_tone_clock is 0
-    if (read_time.tv_nsec - prev_tone_clock < 0 ) {
-        n_seconds = read_time.tv_nsec + (1000000000 - prev_tone_clock);
-    } else {
-        n_seconds = read_time.tv_nsec - prev_tone_clock;
-    }
-
-    prev_tone_clock = read_time.tv_nsec;
-
-    //TODO: This should be 16000, but that is flat? Why?
-    // ( 1/(16MHz / 256)
-    //           / 1E-09)
-    long tmp_t = n_seconds / (double)15100;
-    fast_timer += (uint16_t)round(tmp_t);
+    fast_timer +=4;
 
     process_midi_messages();   
 
