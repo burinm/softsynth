@@ -90,10 +90,12 @@ wdt_disable();
     TCCR0B = 0;
 
     //OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE) +1;
-    OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE) +1;
+    OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE);
+    //OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE) +1;
+    //OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE);
     OCR0B =0;
-    //TCCR0B |= (1 << CS01); // divide 8 prescale
-    TCCR0B |= ( (1 << CS00) | (1 << CS01)); // divide 64 prescale
+    TCCR0B |= (1 << CS01); // divide 8 prescale
+    //TCCR0B |= ( (1 << CS00) | (1 << CS01)); // divide 64 prescale
     TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
     TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
 
@@ -162,9 +164,7 @@ static uint8_t portd_tmp;
 ISR(TIMER0_COMPA_vect) { //Update output sample routine
 
 //interrupts should be off inside here 
-fast_timer= TCNT1;
-//fast_timer= TCNT1;
-fast_timer+= 4;
+fast_timer+= SAMPLE_DIVIDER;
 
 
 
