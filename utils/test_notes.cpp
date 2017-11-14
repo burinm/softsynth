@@ -126,10 +126,12 @@ uint8_t note = 57;
     //midi_init();
     serial_port_setup();
 
-    voices[0].init(t_sin,flute_instrument1);
-    voices[1].init(t_pulse,flute_instrument2);
-    voices[2].init(t_noise,drum_instrument1);
-    voices[3].init(t_sawtooth,flute_instrument2);
+    voices[0].init(t_sin, fatty_base_instrument1);
+    voices[1].init(t_pulse, flute_instrument2);
+    voices[2].init(t_noise, drum_instrument1);
+
+    voices[3].init(t_triangle, fatty_base_instrument1);
+
     voices[4].init(t_pulse,fatty_base_instrument1);
     voices[5].init(t_pulse,fatty_base_instrument1);
 

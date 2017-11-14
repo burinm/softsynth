@@ -163,6 +163,9 @@ ISR(TIMER0_COMPA_vect) { //Update output sample routine
 
 //interrupts should be off inside here 
 fast_timer= TCNT1;
+//fast_timer= TCNT1;
+fast_timer+= 4;
+
 
 
 // Play sample first thing for timing reasons. This means notes

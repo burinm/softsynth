@@ -12,7 +12,8 @@ Synth timer (samples) will need 363 machine ticks
 #define CPU_SPEED   16000000
 #define TONE_CLOCK     62500
 //#define SAMPLE_RATE 22050
-#define SAMPLE_RATE 14285
+//#define SAMPLE_RATE 14285
+#define SAMPLE_RATE 15625
 //#define SAMPLE_RATE 11025
 //#define SAMPLE_RATE 5512
 
