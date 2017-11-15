@@ -17,6 +17,8 @@
     3) - update linux emulator for new timer scheme
     4) - cirbuf static, fix cirbuf impl
     5) - voice pools
+    6) - noise channel is slow at high frequencies
+    7) - Midi command (start note, <0x79, note_off velocity) broken?
 
 */
 
@@ -162,6 +164,7 @@ static uint8_t portd_tmp;
 
 
 ISR(TIMER0_COMPA_vect) { //Update output sample routine
+ERROR_SET(ERROR_MARK);
 //interrupts should be off inside here 
 
 
@@ -200,7 +203,6 @@ fast_timer= TCNT1;
 
     process_midi_messages();            //2us
 
-ERROR_SET(ERROR_MARK);                  //24us
     mixer=0;
 #if 1
     for (i=0;i<max_voices;i++) {
@@ -216,15 +218,16 @@ ERROR_SET(ERROR_MARK);                  //24us
     mixer += 500; 
 #endif
 
-ERROR_SET(ERROR_MARK);
 
     mixer <<= 2; //Only using 10bits right now
     //mixer &= (0xfff); //12 bit audio mask
+ERROR_SET(ERROR_MARK);
 }
 
 ISR(USART_RX_vect) {
 volatile uint8_t b;
 //ERROR_SET(ERROR_RECEIVE);
+//ERROR_SET(ERROR_MARK);
 
     if (UCSR0A & (1<<RXC0)) {
         b = (uint8_t)UDR0;
@@ -234,6 +237,6 @@ volatile uint8_t b;
         }
         /* end critical */
     }
-
+//ERROR_SET(ERROR_MARK);
 //ERROR_SET(ERROR_RECEIVE);
 }

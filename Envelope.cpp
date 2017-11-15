@@ -77,13 +77,6 @@ void Envelope::start() {
 }
 
 
-#if 0
-void Envelope::step() {
-    adsr_envelope_level = 127;
-}
-#endif
-
-#if 1
 void Envelope::step() {
 
     switch (adsr_state) {
@@ -138,11 +131,11 @@ void Envelope::step() {
     }
 
 }
-#endif
 
 #if 0
-//I think this scaling was weird all along
+/*I think this scaling was weird all along
     was taking half the amplitude +/= and scaling by 0-255
+*/
 
 uint16_t Envelope::apply_envelope(uint8_t wave) {
 uint16_t amplitude;
