@@ -46,8 +46,4 @@ const uint8_t t_sine_table[256] = {
 115,116,116,117,118,119,119,120,121,122,123,123,124,125,126,127
 };
 
-static uint8_t t_sine_max_table_value=127;
-
-
-
 #endif

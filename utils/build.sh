@@ -1,7 +1,7 @@
 #!/bin/bash
 rm -f ./bin/*
-gcc dithering.c -lm -o ./bin/dither
-gcc envelope_curve.c -lm -o ./bin/envelope
-gcc notes.c -lm -o ./bin/notes
-gcc sin_generate.c -lm -o ./bin/sin
-gcc test_wave.cpp ../wave_function.c ../Voice.cpp ../Envelope.cpp -o ./bin/wave
+gcc -Wall dithering.c -lm -o ./bin/dither
+gcc -Wall envelope_curve.c -lm -o ./bin/envelope
+gcc -Wall notes.c -lm -o ./bin/notes
+gcc -Wall sin_generate.c -lm -o ./bin/sin
+gcc -Wall test_wave.cpp ../wave_function.c ../Voice.cpp ../Envelope.cpp -o ./bin/wave

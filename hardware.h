@@ -36,8 +36,8 @@ Synth timer (samples) will need 363 machine ticks
 
 #define BITS_WAVE_TABLE_QUANT   8 
 #define WAVE_TABLE_QUANT        (1 << BITS_WAVE_TABLE_QUANT) 
-#define WAVE_TABLE_MIRROR_BITS  (-2) //wave table is 1/4 of total table
-#define WT_AMPL_RATIO           (BITS_PER_PART_PER_CYCLE - BITS_WAVE_TABLE_QUANT + WAVE_TABLE_MIRROR_BITS)
+#define WAVE_TABLE_MIRROR_BITS  2 //wave table is 1/4 of total table
+#define WT_AMPL_RATIO           (BITS_PER_PART_PER_CYCLE - BITS_WAVE_TABLE_QUANT - WAVE_TABLE_MIRROR_BITS)
 
 
 #endif

@@ -37,8 +37,8 @@ e.init(test_instrument);
 e.start();
 e.test_set_adsr_envelope_level(127);
 
-//wave_function=t_sin;
-wave_function=t_triangle;
+wave_function=t_sin;
+//wave_function=t_triangle;
 //wave_function=t_pulse;
 //wave_function=t_sawtooth;
 //wave_function=t_noise;
@@ -46,6 +46,7 @@ wave_function=t_triangle;
 
     for (; cycles > 0; cycles--) {
         for(uint16_t i=0; (uint16_t)(i+1) > i; i++ ) {
+        //for(uint32_t i=0; i< (1<<16); i+=5000 ) { //t_noise test
         //for(uint16_t i=0; i<17000; i++ ) {
         //for(uint16_t i=0; i<256; i++ ) {
             //e.step();

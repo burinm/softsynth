@@ -114,11 +114,6 @@ const uint8_t max_voices=6;
 Voice voices[max_voices]; //TODO: figure out who owns this initialization
 //static uint16_t i=0;
 int main(int argc, char* argv[]) {
-uint8_t note = 57;
-
-    if(argc == 2) {
-        note = (uint8_t)atoi(argv[1]);
-    }
 
     /* Install ctrl-C handler, need to restore serial port on quit */
     signal(SIGINT, ctrl_c);

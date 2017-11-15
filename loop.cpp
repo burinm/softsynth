@@ -156,10 +156,8 @@ void loop()
 
 //For speed, don't allocate these every time
 static uint16_t mixer;
-static uint8_t sample;
 static uint8_t i=0;
 static uint16_t fast_timer=0;
-
 static uint8_t portd_tmp;
 
 
