@@ -1,0 +1,6 @@
+#!/bin/bash
+echo -n -e "\x90\x40\x00" > /dev/ttyS4
+echo -n -e "\x91\x52\x00" > /dev/ttyS4
+echo -n -e "\x92\x79\x00" > /dev/ttyS4
+echo -n -e "\x93\x64\x00" > /dev/ttyS4
+
