@@ -42,20 +42,29 @@ inline uint8_t t_triangle(uint16_t t) {
 }
 
 static uint16_t previous_1 = 0;
-static uint16_t random_number = 9;
+static uint16_t random_number = 4;
+static uint16_t tmp_random_number;
 
 inline uint8_t t_noise(uint16_t t) {
 
- //TODO: investigate previous algorithm, currently broken
-
-    // Lehmer RNG, with Sinclair ZX81 parameters
+    // Lehmer RNG, with small parameters that fit in 2^16 int
     if (t < previous_1) {
-        random_number= ( 75 *random_number) % 65537;
+        //random_number= (uint16_t)( 74 *random_number) % (uint16_t)32771;
+#if 1 //Doesn't profile as any faster
+        // 32771 = 2^15 + 3
+        random_number = (uint16_t)( 74 *random_number);
+        tmp_random_number = random_number>>15;
+        if (tmp_random_number) {
+            tmp_random_number = random_number - (1<<15);
+            if (tmp_random_number>3)
+                random_number = random_number - ((1<<15) + 3);
+        }
+#endif
     }
 
     previous_1 = t;
 
-    return (uint8_t)(random_number >> 8);
+    return (uint8_t)(random_number & 0xff);
 }
 
 inline void random_reset() {
