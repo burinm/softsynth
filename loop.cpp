@@ -70,7 +70,7 @@ wdt_disable();
     //voices[0].init(t_noise, flute_instrument);
 
     voices[1].init(t_pulse, flute_instrument2);
-    //voices[2].init(t_sawtooth, flute_instrument2);
+    //voices[1].init(t_sawtooth, flute_instrument2);
 
     //voices[2].init(t_triangle, flute_instrument2);
     //voices[2].init(t_sawtooth, flute_instrument2);
@@ -123,6 +123,7 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     //Setup serial port - USART UART
     #define FOSC    16000000
     #define BAUD    BAUD_LINUX
+    //#define BAUD    BAUD_MIDI
     #define UBRR    ((FOSC/16/BAUD) - 1)
 
     /*Set baud rate */
@@ -158,28 +159,15 @@ void loop()
 static uint16_t mixer;
 static uint8_t i=0;
 static uint16_t fast_timer=0;
+static uint16_t last_timer=0;
+static uint16_t timer_period=0;
+static uint16_t last_timer_period=0;
 static uint8_t portd_tmp;
 
 
 ISR(TIMER0_COMPA_vect) { //Update output sample routine
-ERROR_SET(ERROR_MARK);
+//ERROR_SET(ERROR_MARK);
 //interrupts should be off inside here 
-
-
-/*
-    This seems like a good idea, but reading timer
-     seems to be solid and accurate on this platform
-*/
-//fast_timer+= SAMPLE_DIVIDER;
-
-
-/*
-    Should sychronize serial port interrupt glitches
-     Also, if sample loop runs long, this will resync
-*/
-fast_timer= TCNT1;
-
-
 
 // Play sample first thing for timing reasons. This means notes
 //  will possibly be behind 1/22.05Hz
@@ -198,6 +186,38 @@ fast_timer= TCNT1;
 
     //Put most significant bits here, so they all change at once
     PORTB = (mixer & 0xFC0) >>6;
+
+
+//Next read timer. Port writes above should be constant clock cycles
+/*
+    This seems like a good idea, but reading timer
+     seems to be solid and accurate on this platform
+*/
+//fast_timer+= SAMPLE_DIVIDER;
+
+
+/*
+    Should sychronize serial port interrupt glitches
+     Also, if sample loop runs long, this will resync
+*/
+
+fast_timer= TCNT1;
+#if 0
+
+timer_period = fast_timer - last_timer;
+last_timer= fast_timer;
+
+if (timer_period - last_timer_period) {
+    ERROR_SET(ERROR_MARK);              <-----spin here to adjust, don't adjust fast_timer!!!
+    ERROR_SET(ERROR_MARK);
+}
+
+last_timer_period = timer_period;
+#endif
+
+
+
+
 
     process_midi_messages();            //2us
 
@@ -219,7 +239,7 @@ fast_timer= TCNT1;
 
     mixer <<= 2; //Only using 10bits right now
     //mixer &= (0xfff); //12 bit audio mask
-ERROR_SET(ERROR_MARK);
+//ERROR_SET(ERROR_MARK);
 }
 
 ISR(USART_RX_vect) {

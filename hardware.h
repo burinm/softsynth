@@ -18,6 +18,7 @@ Synth timer (samples) will need 363 machine ticks
 #define SAMPLE_DIVIDER  4  //  15625, almost fast enough for 4 voice current implementation
 //#define SAMPLE_DIVIDER  3 // --- 31250, ideal... but not yet
 #define SAMPLE_RATE (TONE_CLOCK / SAMPLE_DIVIDER)
+//#define SAMPLE_RATE 18000 
 //#define SAMPLE_RATE 11025
 //#define SAMPLE_RATE 5512
 

@@ -45,6 +45,9 @@ inline uint8_t t_sin(uint16_t t) {
     }
 }
 
+uint16_t even_out = 0;
+uint8_t high_count=0;
+uint8_t last_high_count=0;
 inline uint8_t t_pulse(uint16_t t) {
 
     //quarter duty cycle
@@ -54,7 +57,7 @@ inline uint8_t t_pulse(uint16_t t) {
 }
 
 inline uint8_t t_sawtooth(uint16_t t) {
-    return t >> BPC_AMPL_RATIO;
+    return (t >> BPC_AMPL_RATIO);
 }
 
 inline uint8_t t_triangle(uint16_t t) {
