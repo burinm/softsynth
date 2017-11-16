@@ -1,0 +1,3 @@
+#!/bin/bash
+#cd ttymidi/ttymidi
+./ttymidi -s /dev/ttyS4 -b 38400
