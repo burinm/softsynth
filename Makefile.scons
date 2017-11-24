@@ -1,0 +1,11 @@
+env = DefaultEnvironment()
+env['CC'] = '/usr/bin/avr-gcc'
+env['CXX'] = '/usr/bin/avr-g++'
+env['CXXFLAGS'] = '-DF_CPU=16000000UL -mmcu=atmega328p'
+env['CPPPATH'] = '-I/home/burin/arduino/hardware/arduino/avr/cores/arduino'
+
+env.VariantDir('./obj', '.', duplicate= False)
+
+src_files = Split('loop.cpp Voice.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c')
+
+env.Program(source = src_files, target = 'softsynth.elf')

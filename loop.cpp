@@ -22,12 +22,14 @@
 
 */
 
-#include <Arduino.h>
+//#include <Arduino.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include <math.h>
 
 #include <avr/wdt.h> //wdt_disable
-#include <avr/io.h>
+//#include <avr/io.h>
 #include <avr/sleep.h>
 
 extern "C" {
@@ -148,8 +150,11 @@ ISR(BADISR_vect)
 }
 
 
-void loop()
+int main()
 {
+//init(); from arduino/hardware/arduino/avr/cores/arduino/wiring.c
+setup();
+
     set_sleep_mode(SLEEP_MODE_IDLE);
     sleep_enable();
     sleep_mode();
