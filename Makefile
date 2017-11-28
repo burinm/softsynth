@@ -44,7 +44,9 @@ AVR_TOOLS_DIR     = /usr
 ### On OS X with `homebrew`:
 #AVRDUDE          = /usr/local/bin/avrdude
 ### or on Linux: (remove the one you don't want)
-AVRDUDE          = $(ARDUINO_DIR)/hardware/tools/avr/bin/avrdude
+#AVRDUDE          = $(ARDUINO_DIR)/hardware/tools/avr/bin/avrdude
+AVRDUDE          = /usr/local/bin/avrdude
+AVRDUDE_CONF     = /usr/local/etc/avrdude.conf
 
 ### CFLAGS_STD
 ### Set the C standard to be used during compilation. Documentation (https://github.com/WeAreLeka/Arduino-Makefile/blob/std-flags/arduino-mk-vars.md#cflags_std)
@@ -52,7 +54,7 @@ CFLAGS_STD        = -std=gnu11
 
 ### CXXFLAGS_STD
 ### Set the C++ standard to be used during compilation. Documentation (https://github.com/WeAreLeka/Arduino-Makefile/blob/std-flags/arduino-mk-vars.md#cxxflags_std)
-CXXFLAGS_STD      = -std=gnu++11
+CXXFLAGS_STD      = -std=gnu++14
 
 ### CXXFLAGS
 ### Flags you might want to set for debugging purpose. Comment to stop.
