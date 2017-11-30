@@ -23,22 +23,18 @@ Synth timer (samples) will need 363 machine ticks
 //#define SAMPLE_RATE 5512
 
 #define BITS_PER_PART_PER_CYCLE 16
-#define PARTS_PER_CYCLE         (1 << BITS_PER_PART_PER_CYCLE) //currently 2^16 
-
-#define PARTS_PER_CYCLE_MAX_VALUE  (65535) //Hardcoded so preprocessor doesn't mangle > 2^16 
-#define PARTS_PER_CYCLE_HALF    (1 << (BITS_PER_PART_PER_CYCLE - 1)) // 2^15
-#define PARTS_PER_CYCLE_QUARTER (1 << (BITS_PER_PART_PER_CYCLE - 2)) // 2^14
+#define PARTS_PER_CYCLE_HALF    (uint16_t)(1 << (BITS_PER_PART_PER_CYCLE - 1)) // 2^15
+#define PARTS_PER_CYCLE_QUARTER (uint16_t)(1 << (BITS_PER_PART_PER_CYCLE - 2)) // 2^14
 
 #define BITS_AMPLITUDE          8
-#define MAX_AMPLITUDE           ((1 << BITS_AMPLITUDE) -1)     //currently 255
-#define HALF_AMPLITUDE          ((1 << BITS_AMPLITUDE) /2)     //currently 128
+#define MAX_AMPLITUDE           (uint8_t)((1 << BITS_AMPLITUDE) -1)     //currently 255
+#define HALF_AMPLITUDE          (uint8_t)((1 << BITS_AMPLITUDE) /2)     //currently 128
 
-#define BPC_AMPL_RATIO          (BITS_PER_PART_PER_CYCLE - BITS_AMPLITUDE)
+#define BPC_AMPL_RATIO          (uint8_t)(BITS_PER_PART_PER_CYCLE - BITS_AMPLITUDE)
 
 #define BITS_WAVE_TABLE_QUANT   8 
-#define WAVE_TABLE_QUANT        (1 << BITS_WAVE_TABLE_QUANT) 
-#define WAVE_TABLE_MIRROR_BITS  2 //wave table is 1/4 of total table
-#define WT_AMPL_RATIO           (BITS_PER_PART_PER_CYCLE - BITS_WAVE_TABLE_QUANT - WAVE_TABLE_MIRROR_BITS)
+#define BITS_WAVE_TABLE_MIRROR  2 //wave table is 1/4 of total table
+#define WT_AMPL_RATIO           (BITS_PER_PART_PER_CYCLE - BITS_WAVE_TABLE_QUANT - BITS_WAVE_TABLE_MIRROR)
 
 
 #endif

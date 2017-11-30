@@ -12,14 +12,13 @@ uint8_t t_sin_lookup;
 inline uint8_t t_sin(uint16_t t) {
 
 /*
-    Quadrants are 1/4 of 1024 i.e. BITS_WAVE_TABLE_QUANT + WAVE_TABLE_MIRROR_BITS
-     Right shift additional 8 bits to fit in uint8_t
+    Quadrants are 1/4 of 2^10 i.e. BITS_WAVE_TABLE_QUANT + WAVE_TABLE_MIRROR_BITS
+     Right shift additional 8 bits to fit MSBit in uint8_t
 */
 #define QUADRANT_4  0x3     // 768 >>8
 #define QUADRANT_3  0x2     // 512 >>8
 #define QUADRANT_2  0x1     // 256 >>8
 #define QUADRANT_1  0x0
-
 
     t >>= WT_AMPL_RATIO;
 

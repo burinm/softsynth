@@ -10,10 +10,10 @@ SOURCES := loop.cpp Voice.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny
 HEADERS := circbuf_tiny.h debug.h Envelope.h hardware.h instruments.h midi.h Voice.h wave_function.h
 
 CFLAGS += -Os -flto -DF_CPU=16000000UL -mmcu=atmega328p
-CFLAGS += -pedantic -Wall -Wextra
+CFLAGS += -Wall -Wextra
 
-CXXFLAGS := $(CFLAGS) -std=gnu++14
-CFLAGS += -std=gnu11
+CXXFLAGS := $(CFLAGS) -std=c++14
+CFLAGS += -std=c11
 
 
 LDFLAGS += -Wl,--gc-sections -fuse-linker-plugin

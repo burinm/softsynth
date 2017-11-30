@@ -16,8 +16,8 @@ enum error_type{ERROR_NONE=0,              // xxxx
                 ERROR_ALL=0xf};            // OOOO
 
 
-#ifdef ARDUINO
-#define ERROR_SET(e) \ 
+#ifdef PORTD
+#define ERROR_SET(e) \
 { \
     switch(e) { \
         case ERROR_MARK: \

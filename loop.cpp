@@ -22,14 +22,10 @@
 
 */
 
-//#include <Arduino.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include <math.h>
-
-#include <avr/wdt.h> //wdt_disable
-//#include <avr/io.h>
+//#include <avr/wdt.h> //wdt_disable
 #include <avr/sleep.h>
 
 extern "C" {
@@ -55,7 +51,7 @@ Voice voices[max_voices];
 extern circbuf_tiny_t midi_buf;
 
 void setup() {
-wdt_disable();
+//wdt_disable();
     // set the digital pin as output:  
 
     //12-bit digital sound out
@@ -155,23 +151,28 @@ int main()
 //init(); from arduino/hardware/arduino/avr/cores/arduino/wiring.c
 setup();
 
-    set_sleep_mode(SLEEP_MODE_IDLE);
-    sleep_enable();
-    sleep_mode();
+    for(;;) {
+        set_sleep_mode(SLEEP_MODE_IDLE);
+        sleep_enable();
+        sleep_mode();
+    }
 }
 
 //For speed, don't allocate these every time
 static uint16_t mixer;
 static uint8_t i=0;
+static uint8_t portd_tmp;
 static uint16_t fast_timer=0;
+
+#if 0
 static uint16_t last_timer=0;
 static uint16_t timer_period=0;
 static uint16_t last_timer_period=0;
-static uint8_t portd_tmp;
+#endif
 
 
 ISR(TIMER0_COMPA_vect) { //Update output sample routine
-//ERROR_SET(ERROR_MARK);
+ERROR_SET(ERROR_MARK);
 //interrupts should be off inside here 
 
 // Play sample first thing for timing reasons. This means notes
@@ -185,7 +186,7 @@ ISR(TIMER0_COMPA_vect) { //Update output sample routine
 
 
     //Highest 6 bits set to audio lsb, Lower 2 bits reserved for debug, UART RX
-    // This also leaves debug bits 2-5 alone
+    // This also leaves debug bits 0-1 alone
     portd_tmp = (PORTD & 0x3);
     PORTD = portd_tmp | ((uint8_t)(mixer & 0x3F) << 2);
 
@@ -213,7 +214,7 @@ timer_period = fast_timer - last_timer;
 last_timer= fast_timer;
 
 if (timer_period - last_timer_period) {
-    ERROR_SET(ERROR_MARK);              <-----spin here to adjust, don't adjust fast_timer!!!
+    ERROR_SET(ERROR_MARK);              //<-----spin here to adjust, don't adjust fast_timer!!!
     ERROR_SET(ERROR_MARK);
 }
 
@@ -244,7 +245,7 @@ last_timer_period = timer_period;
 
     mixer <<= 2; //Only using 10bits right now
     //mixer &= (0xfff); //12 bit audio mask
-//ERROR_SET(ERROR_MARK);
+ERROR_SET(ERROR_MARK);
 }
 
 ISR(USART_RX_vect) {
