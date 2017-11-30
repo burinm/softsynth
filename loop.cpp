@@ -25,7 +25,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-//#include <avr/wdt.h> //wdt_disable
+#include <avr/wdt.h> //wdt_disable, wdt_reset
 #include <avr/sleep.h>
 
 extern "C" {
@@ -51,7 +51,20 @@ Voice voices[max_voices];
 extern circbuf_tiny_t midi_buf;
 
 void setup() {
-//wdt_disable();
+//wdt_disable(); //clang won't compile this due to overflow on "I" parameter
+
+// From Atmega328p datasheet, disable watchdog
+cli();
+wdt_reset();
+/* Clear WDRF in MCUSR */
+MCUSR &= ~(1<<WDRF);
+/* Write logical one to WDCE and WDE */
+/* Keep old prescaler setting to prevent unintentional time-out */
+WDTCSR |= (1<<WDCE) | (1<<WDE);
+/* Turn off WDT */
+WDTCSR = 0x00;
+sei();
+
     // set the digital pin as output:  
 
     //12-bit digital sound out
@@ -81,7 +94,7 @@ void setup() {
     voices[3].init(t_triangle, fatty_base_instrument1);
 
 
-    //Interrupts of to setup timers
+    //Interrupts off to setup timers
     cli();
 
 // Timer 0, for Sample Loop
