@@ -1,9 +1,10 @@
 
-CC := /usr/bin/avr-gcc
-CXX := /usr/bin/avr-g++
-SIZE := /usr/bin/avr-size
-OBJCOPY := /usr/bin/avr-objcopy
-AVRDUDE := /usr/local/bin/avrdude
+AVR_TOOLS_PATH := /opt/avr-tools
+CC := avr-gcc -v
+CXX := avr-g++
+SIZE := avr-size
+OBJCOPY := avr-objcopy
+AVRDUDE := avrdude
 
 SOURCES := loop.cpp Voice.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c
 CFLAGS += -Os -flto -DF_CPU=16000000UL -mmcu=atmega328p
@@ -46,4 +47,4 @@ clean:
 	cd $(OBJDIR) && rm -f *.o
 
 upload: softsynth.hex
-	$(AVRDUDE) -q -V -p atmega328p -C /usr/local/etc/avrdude.conf -D -c arduino -b 115200 -P /dev/ttyACM0 -U flash:w:softsynth.hex:i
+	$(AVRDUDE) -q -V -p atmega328p -C $(AVR_TOOLS_PATH)/etc/avrdude.conf -D -c arduino -b 115200 -P /dev/ttyACM0 -U flash:w:softsynth.hex:i
