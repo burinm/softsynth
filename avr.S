@@ -61,7 +61,7 @@ diag_loop:
         brne diag_loop      ; 2 cycles true, 1 false
         rjmp timer_error ; 2 cycles
 adjust:
-        subi    r16, 78 <--don't thing this system has jitter  
+        subi    r16, 78 ;<--don't think this system has jitter  
         brsh    timer_error
         ;sbc     r17, r1 ; really don't need this because the case above
         call    jitter  ;pushes PC+2 on to stack

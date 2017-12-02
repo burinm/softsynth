@@ -7,8 +7,11 @@
 #ifndef __VOICE_H__
 #define __VOICE_H__
 
+#define MAX_VOICES 4
+
 extern "C" {
     #include <stdint.h> //avr-g++ doesn't support <cstdint>??
+    #include "wave_function.h" //TODO: for random_reset, find better way to encapsulate this
 }
 
 #include "Envelope.h"
@@ -43,8 +46,19 @@ class Voice {
         static const uint16_t note_phase_mult_table[128];
 
         void init(uint8_t (*f)(uint16_t), envelope_t&);
-        void startNote(uint8_t midinote);
-        void stopNote();
+
+        inline void startNote(uint8_t midinote) {
+            SET_NOTE(current_note,midinote);
+            envelope.start();
+            random_reset();
+        }
+
+        void stopNote() {
+            NOTE_OFF(current_note);
+            envelope.setState(ADSR_RELEASE);
+            //should we reset envelope here?
+        }
+
         inline void step(uint16_t t) {
                 // Automatic 16bit rollover (i.e. phase % PARTS_PER_CYCLE)
                 phase = t * note_phase_mult_table[GET_NOTE(current_note)];  //2.4us per voice

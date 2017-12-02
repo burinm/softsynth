@@ -10,7 +10,6 @@
 using namespace SoftSynth;
 
 /* Voices */
-extern const uint8_t max_voices;
 extern Voice voices[];
 
 /* midi buffer */
@@ -50,7 +49,7 @@ void process_midi_messages() {
             }
         } else {
 
-            if (midi_current_channel < max_voices) {
+            if (midi_current_channel < MAX_VOICES) {
                 switch(midi_running_status) {
                     case    MIDI_STATUS_NOTE_ON:
     //fprintf(stderr,"Note on-->%d",byte_out);

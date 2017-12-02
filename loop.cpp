@@ -41,44 +41,43 @@ extern "C" {
 #include "midi.h"
 #include "instruments.h"
 
-#if 0
-extern "C" {
-    void DELAY_5();
-    void jitter_undo();
-};
-#endif
-
 using namespace SoftSynth;
 
 /* Voices */
-extern const uint8_t max_voices;
-const uint8_t max_voices=4;
-Voice voices[max_voices];
+Voice voices[MAX_VOICES];
 
 extern circbuf_tiny_t midi_buf;
 
 void setup() {
 //wdt_disable(); //clang won't compile this due to overflow on "I" parameter
 
-// From Atmega328p datasheet, disable watchdog
 cli();
-wdt_reset();
-/* Clear WDRF in MCUSR */
-MCUSR &= ~(1<<WDRF);
-/* Write logical one to WDCE and WDE */
-/* Keep old prescaler setting to prevent unintentional time-out */
-WDTCSR |= (1<<WDCE) | (1<<WDE);
-/* Turn off WDT */
-WDTCSR = 0x00;
+    // From Atmega328p datasheet, disable watchdog
+    wdt_reset();
+    /* Clear WDRF in MCUSR */
+    MCUSR &= ~(1<<WDRF);
+    /* Write logical one to WDCE and WDE */
+    /* Keep old prescaler setting to prevent unintentional time-out */
+    WDTCSR |= (1<<WDCE) | (1<<WDE);
+    /* Turn off WDT */
+    WDTCSR = 0x00;
 sei();
 
-    // set the digital pin as output:  
 
     //12-bit digital sound out
-    DDRD = 0B11111110; //pins 2-7 (sound lsb), pin 1 reserved for debug, pin 0 reserved for UART RX
+
+    /* PORTD
+        pins 2-7 (sound lsb),       output  
+        pin 1    for debug,         output
+        pin 0 reserved for UART RX
+    */
+    DDRD = 0B11111110; 
     PORTD = 0x0;
 
-    //8-bit sound out msb
+    /* PORTB
+        pins 6-7 unused
+        pins 0-5 (sound lsb),       output  
+    */
     DDRB = 0B00111111; //pins 0-5 (sound msb)
     PORTB = 0x0;
 
@@ -96,14 +95,13 @@ sei();
     //voices[2].init(t_sawtooth, flute_instrument2);
     voices[2].init(t_noise, drum_instrument1);
 
-
     //voices[3].init(t_noise, flute_instrument2);
     //voices[3].init(t_pulse, fatty_base_instrument1);
     voices[3].init(t_triangle, fatty_base_instrument1);
 
 
-    //Interrupts off to setup timers
-    cli();
+//Interrupts off to setup timers
+cli();
 
 // Timer 0, for Sample Loop
     //Defaults for timer0 registers
@@ -140,14 +138,6 @@ sei();
     //TIMSK1 |= (1 << OCIE1A); //enable timer compare interrupt
 #endif
 
-
-//override some gcc stuff...
-
-//This timer seems to be on by default!!
-TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
-//unsigned int *pvector_16=(unsigned int*)0x40;
- //   *pvector_11=0x0000;
-
     #define BAUD_MIDI    31250
     #define BAUD_LINUX   38400 
     //Setup serial port - USART UART
@@ -171,7 +161,7 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     /* Init midi and midi buffer */
     midi_init();
 
-    sei();
+sei();
 }
 
 ISR(BADISR_vect)
@@ -199,12 +189,13 @@ static uint16_t fast_timer=0;
 
 
 //Interrupts are off on the AVR Atmel328p achitechture
-ISR(TIMER0_COMPA_vect) { //Update output sample routine
+//Update output sample routine
+ISR(TIMER0_COMPA_vect) {                               //26.4us idle, 53.6 stress
 
 //Couldn't get this to work without spending precious cycles
 //jitter_undo();
-
 ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
+
 
 #ifdef NON_CORRECTING_TIMING 
     /*
@@ -248,10 +239,10 @@ ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
     process_midi_messages();            //2us
 
     mixer=0;
-#if 1
-    for (i=0;i<max_voices;i++) {
-        voices[i].step(fast_timer);
-        mixer += (voices[i].sample());
+#if 1                                                        // 24.4us idle, 56us stress
+    for (i=0;i<MAX_VOICES;++i) {
+        voices[i].step(fast_timer);                         //   4us idle,    8us stress 
+        mixer += (voices[i].sample());                      //   1.4us idle,  6.4us stress
     }
 #endif
 
@@ -264,6 +255,7 @@ ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
          enough to ovoid UART buffer overflow.
         No need to complicate timing with another interrupt
     */
+                                                            //  .5us idle, 2.2us stress
     static uint8_t b;
     if (UCSR0A & (1<<RXC0)) { 
         b = (uint8_t)UDR0;

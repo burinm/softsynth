@@ -9,7 +9,10 @@ AVRDUDE := avrdude
 SOURCES := loop.cpp Voice.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c
 HEADERS := circbuf_tiny.h debug.h Envelope.h hardware.h instruments.h midi.h Voice.h wave_function.h
 
-CFLAGS += -Os -flto -DF_CPU=16000000UL -mmcu=atmega328p
+CFLAGS += -flto -DF_CPU=16000000UL -mmcu=atmega328p
+#CFLAGS += -Os #27.3us
+CFLAGS += -O3 #26.4us
+#CFLAGS += -Ofast #26.4
 CFLAGS += -Wall -Wextra
 CFLAGS += -g 
 
@@ -55,8 +58,8 @@ softsynth.hex: softsynth.elf
 	$(OBJCOPY) -O ihex -R .eeprom  $< $@
 
 clean:
-	rm -f softsynth.elf softsynth.eep softsynth.hex
+	rm -f softsynth.elf softsynth.eep softsynth.hex header_deps
 	cd $(OBJDIR) && rm -f *.o
 
-upload: softsynth.hex
+upload: softsynth.hex size
 	$(AVRDUDE) -q -V -p atmega328p -C $(AVR_TOOLS_PATH)/etc/avrdude.conf -D -c arduino -b 115200 -P /dev/ttyACM0 -U flash:w:softsynth.hex:i

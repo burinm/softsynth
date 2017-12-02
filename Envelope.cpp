@@ -59,24 +59,6 @@ void Envelope::init(envelope_t &e) {
     adsr_run.release_count = 0;
 }
 
-void Envelope::start() {
-    adsr_envelope_level = 0;
-    adsr_state = ADSR_ATTACK;
-
-    adsr_run.attack_ticks = adsr_reset.attack_ticks;
-    adsr_run.attack_count = adsr_reset.attack_count;
-
-    adsr_run.decay_ticks = adsr_reset.decay_ticks;
-    adsr_run.decay_count = adsr_reset.decay_count;
-
-    adsr_run.sustain_ticks = adsr_reset.sustain_ticks;
-    adsr_run.sustain_hold = adsr_reset.sustain_hold;
-
-    adsr_run.release_ticks = adsr_reset.release_ticks;
-    adsr_run.release_count = adsr_reset.release_count;
-}
-
-
 void Envelope::step() {
 
     switch (adsr_state) {

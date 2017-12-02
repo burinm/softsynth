@@ -7,9 +7,7 @@
 #include "Voice.h"
 
 extern "C" {
-#include <stdio.h> //TODO: remove, tesing only
 #include "hardware.h"
-#include "wave_function.h" //TODO: for random_reset, find better way to encapsulate this
 }
 
 #ifdef ARDUINO
@@ -42,18 +40,6 @@ void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
     current_note = 0;
 
     envelope.init(e);
-}
-
-void Voice::startNote(uint8_t midinote) {
-    SET_NOTE(current_note,midinote);
-    envelope.start();
-    random_reset();
-} 
-
-void Voice::stopNote() {
-    NOTE_OFF(current_note);
-    envelope.setState(ADSR_RELEASE);
-    //should we reset envelope here?
 }
 
 void Voice::setWaveform(uint8_t (*f)(uint16_t)) {
