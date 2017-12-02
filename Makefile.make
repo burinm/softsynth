@@ -11,6 +11,7 @@ HEADERS := circbuf_tiny.h debug.h Envelope.h hardware.h instruments.h midi.h Voi
 
 CFLAGS += -Os -flto -DF_CPU=16000000UL -mmcu=atmega328p
 CFLAGS += -Wall -Wextra
+CFLAGS += -g 
 
 CXXFLAGS := $(CFLAGS) -std=c++14
 CFLAGS += -std=c11
@@ -22,6 +23,7 @@ LDLIBS += -lc
 
 
 OBJS := $(patsubst %.cpp,%.o, $(patsubst %.c,%.o, $(SOURCES)) )
+OBJS += avr.o
 OBJDIR := ./objs-make
 
 all: softsynth.elf size softsynth.eep softsynth.hex header_deps
@@ -38,6 +40,9 @@ $(OBJDIR)/%.o: %.c header_deps
 	$(CC) -c -o $@ $(CFLAGS) $<
 
 $(OBJDIR)/%.o: %.cpp header_deps
+	$(CXX) -c -o $@ $(CXXFLAGS) $<
+
+$(OBJDIR)/%.o: %.S
 	$(CXX) -c -o $@ $(CXXFLAGS) $<
 
 size: softsynth.elf

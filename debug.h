@@ -9,7 +9,7 @@
 //       figure out new debugging scheme
 enum error_type{ERROR_NONE=0,              // xxxx
                 ERROR_MARK =  0x1,         // Oxxx
-                ERROR_FATAL = 0x2,         // xOxx
+                ERROR_UNMARK = 0x2,        // xOxx
                 ERROR_CRITICAL = 0x4,      // xxOx 
                 ERROR_OVERFLOW = 0x8,      // xxxO
                 ERROR_RECEIVE = 0x6,       // xOOx 
@@ -21,7 +21,10 @@ enum error_type{ERROR_NONE=0,              // xxxx
 { \
     switch(e) { \
         case ERROR_MARK: \
-            PORTD ^= 0x2; \
+            PORTD |= 0x2; \
+            break; \
+        case ERROR_UNMARK: \
+            PORTD &= ~0x2; \
             break; \
         default: \
             break; \

@@ -41,6 +41,13 @@ extern "C" {
 #include "midi.h"
 #include "instruments.h"
 
+#if 0
+extern "C" {
+    void DELAY_5();
+    void jitter_undo();
+};
+#endif
+
 using namespace SoftSynth;
 
 /* Voices */
@@ -73,6 +80,7 @@ sei();
 
     //8-bit sound out msb
     DDRB = 0B00111111; //pins 0-5 (sound msb)
+    PORTB = 0x0;
 
     /* Initalize Voices */
     //voices[0].init(t_pulse, flute_instrument1);
@@ -102,6 +110,7 @@ sei();
     TCCR0A = 0;
     TCCR0B = 0;
 
+#if 1
     //OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE) +1;
     OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE);
     //OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE) +1;
@@ -111,15 +120,25 @@ sei();
     //TCCR0B |= ( (1 << CS00) | (1 << CS01)); // divide 64 prescale
     TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
     TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
+#endif
 
-    
+
 // Timer 1, 16bit timer, overflow for Tone Clock
     //Defaults for timer1 registers
     TCCR1A = 0;
     TCCR1B = 0;
 
+#ifndef NON_CORRECTING_TIMING
+    //Timer will run 62500Mz:
     OCR1A = 0; //Full 16 bits
-    TCCR1B |= (1 << CS12);    // divide 256 prescaler
+    TCCR1B |= (1 << CS12);    // divide 256 prescale 
+
+    //OCR1A = (CPU_SPEED/SAMPLE_RATE); //Full 16 bits
+    //TCCR1B |= (1<<CS10) | (1 << CS12);    // divide 1024 prescale 
+    //TCCR1B |= (1 << WGM12); //CTC mode, top is OCR1A
+    //TCCR1B |= (1 << CS10);    // no prescaler, enabled
+    //TIMSK1 |= (1 << OCIE1A); //enable timer compare interrupt
+#endif
 
 
 //override some gcc stuff...
@@ -140,9 +159,11 @@ TIMSK0 &= ~_BV(TOIE0); // disable timer0 overflow interrupt
     /*Set baud rate */
     UBRR0H = (uint8_t)(UBRR>>8);
     UBRR0L = (uint8_t)UBRR;
-    UCSR0B = (1<<RXEN0) |  /* Enable receive */
+    UCSR0B = (1<<RXEN0)  /* Enable receive */
+             // |
              //(1<<TXEN0) |  /*  Enable TX - Use this pin for debug instead*/ 
-             (1<<RXCIE0);  /* Enable RX complete interrupt */
+             //(1<<RXCIE0)  /* Enable RX complete interrupt */
+    ;
 
     /* Set frame format: 8N1 */
     UCSR0C = (3<<UCSZ00);
@@ -161,7 +182,6 @@ ISR(BADISR_vect)
 
 int main()
 {
-//init(); from arduino/hardware/arduino/avr/cores/arduino/wiring.c
 setup();
 
     for(;;) {
@@ -177,66 +197,53 @@ static uint8_t i=0;
 static uint8_t portd_tmp;
 static uint16_t fast_timer=0;
 
-#if 0
-static uint16_t last_timer=0;
-static uint16_t timer_period=0;
-static uint16_t last_timer_period=0;
+
+//Interrupts are off on the AVR Atmel328p achitechture
+ISR(TIMER0_COMPA_vect) { //Update output sample routine
+
+//Couldn't get this to work without spending precious cycles
+//jitter_undo();
+
+ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
+
+#ifdef NON_CORRECTING_TIMING 
+    /*
+        Sounds better than timer read
+         but will wobble if timing loop goes long
+    */
+    fast_timer+= SAMPLE_DIVIDER;
+#else
+    /*
+        Should sychronize if timing goes long
+         But high notes are unstable 
+    */
+    fast_timer= TCNT1;
 #endif
 
+// Play sample first thing for timing reasons.
+//
 
-ISR(TIMER0_COMPA_vect) { //Update output sample routine
-ERROR_SET(ERROR_MARK);
-//interrupts should be off inside here 
+/*
+    12 bit digital audio!
 
-// Play sample first thing for timing reasons. This means notes
-//  will possibly be behind 1/22.05Hz
+    PORTD - bit  0  , UART RX
+            bit  1  , UART TX - can ignore UART, and use as debug out 
+            bits 2-7, LSBits of output 
 
-//Because all 8 pins on any port can't be used with the UART at the same time,
-// two ports must be used for the digital output. Put the MSBs on the port
-// with the most sucessive pins on the same port PORTB(6), because we can't
-// synchronize writing to two ports at once. This will be a less glitchy sound
-// since just the lowest two bits may not synchonize.
+    PORTB - bits 0-5, MSBits of output
+            bits 6-7, unavailable
 
+     Change the MSBs last because we can't synchronize writing to
+      two ports at once. This will be a less glitchy sound
+      in theory..
+*/
 
-    //Highest 6 bits set to audio lsb, Lower 2 bits reserved for debug, UART RX
-    // This also leaves debug bits 0-1 alone
+    // LSBits - This leaves TX and RX (now debug) bits 0-1 alone
     portd_tmp = (PORTD & 0x3);
     PORTD = portd_tmp | ((uint8_t)(mixer & 0x3F) << 2);
 
-    //Put most significant bits here, so they all change at once
+    // MSBits - Mask out unavailable bits 6,7
     PORTB = (mixer & 0xFC0) >>6;
-
-
-//Next read timer. Port writes above should be constant clock cycles
-/*
-    This seems like a good idea, but reading timer
-     seems to be solid and accurate on this platform
-*/
-//fast_timer+= SAMPLE_DIVIDER;
-
-
-/*
-    Should sychronize serial port interrupt glitches
-     Also, if sample loop runs long, this will resync
-*/
-
-fast_timer= TCNT1;
-#if 0
-
-timer_period = fast_timer - last_timer;
-last_timer= fast_timer;
-
-if (timer_period - last_timer_period) {
-    ERROR_SET(ERROR_MARK);              //<-----spin here to adjust, don't adjust fast_timer!!!
-    ERROR_SET(ERROR_MARK);
-}
-
-last_timer_period = timer_period;
-#endif
-
-
-
-
 
     process_midi_messages();            //2us
 
@@ -248,23 +255,28 @@ last_timer_period = timer_period;
     }
 #endif
 
-#if 0
-    voices[0].step(fast_timer);
-    mixer = voices[0].sample();
-    //mixer += (127 + 127 + 127); //381
-    mixer += 500; 
-#endif
-
-
     mixer <<= 2; //Only using 10bits right now
     //mixer &= (0xfff); //12 bit audio mask
-ERROR_SET(ERROR_MARK);
+
+    /*
+        38400 fastest MIDI bit rate,  10bits/byte = 3840Hz 
+         so, just checking each sample is plenty fast
+         enough to ovoid UART buffer overflow.
+        No need to complicate timing with another interrupt
+    */
+    static uint8_t b;
+    if (UCSR0A & (1<<RXC0)) { 
+        b = (uint8_t)UDR0;
+        if (circbuf_tiny_write(&midi_buf,b) == 0) {
+            ERROR_SET(ERROR_OVERFLOW);
+        }
+    }
+ERROR_SET(ERROR_UNMARK);
 }
 
+#if 0
 ISR(USART_RX_vect) {
 volatile uint8_t b;
-//ERROR_SET(ERROR_RECEIVE);
-//ERROR_SET(ERROR_MARK);
 
     if (UCSR0A & (1<<RXC0)) {
         b = (uint8_t)UDR0;
@@ -274,6 +286,5 @@ volatile uint8_t b;
         }
         /* end critical */
     }
-//ERROR_SET(ERROR_MARK);
-//ERROR_SET(ERROR_RECEIVE);
 }
+#endif

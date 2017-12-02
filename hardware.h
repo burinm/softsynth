@@ -9,18 +9,22 @@ Synth timer (samples) will need 363 machine ticks
 -------------------------------------------------
 */
 
+/* NON_CORRECTING_TIMING
+    Use if not overclocking,
+    requires using SAMPLE_DIVIDER to calculate SAMPLE_RATE
+*/
+#define NON_CORRECTING_TIMING
+
 #define CPU_SPEED   16000000
 #define TONE_CLOCK     62500
-//#define SAMPLE_RATE 22050
-//#define SAMPLE_RATE 14285
+
 
 //#define SAMPLE_DIVIDER  5 // 12500, works but quality suffers
 #define SAMPLE_DIVIDER  4  //  15625, almost fast enough for 4 voice current implementation
-//#define SAMPLE_DIVIDER  3 // --- 31250, ideal... but not yet
+//#define SAMPLE_DIVIDER  3 // --- 31250, ideal... but not yet, sample loop goes long
 #define SAMPLE_RATE (TONE_CLOCK / SAMPLE_DIVIDER)
-//#define SAMPLE_RATE 18000 
-//#define SAMPLE_RATE 11025
-//#define SAMPLE_RATE 5512
+//#define SAMPLE_RATE 22050
+//#define SAMPLE_RATE 18867 //Experimentally the fastest we can run without timing violations 
 
 #define BITS_PER_PART_PER_CYCLE 16
 #define PARTS_PER_CYCLE_HALF    (uint16_t)(1 << (BITS_PER_PART_PER_CYCLE - 1)) // 2^15
