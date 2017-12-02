@@ -18,3 +18,4 @@
 
 #Adjust for different sample rate on Linux version
 chrt -f 21 ./test/test_notes  | aplay --rate 15625 --format S16_LE --channels 1 -
+#chrt -f 21 ./test/test_notes  | aplay --rate 31250 --format S16_LE --channels 1 -

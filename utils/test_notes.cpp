@@ -16,6 +16,7 @@
 
 extern "C" {
     #include "../wave_function.h"
+    #include "../hardware.h"
 }
 
 using namespace SoftSynth;
@@ -28,8 +29,8 @@ void setup_timer();
 
 
 void setup_timer() {
-//#define FREQUENCY_SAMPLE_CLOCK  90703 //11025Hz
-#define FREQUENCY_SAMPLE_CLOCK  64000 //15625Hz
+#define PERIOD_CLOCK_SAMPLE ( (CPU_SPEED * SAMPLE_DIVIDER) / 1000)
+//#define PERIOD_CLOCK_SAMPLE 64000 
 
 /*
     The Atmel328p runs 16MHz, with a divide by 256 scaled clock
@@ -47,8 +48,6 @@ void setup_timer() {
 
     This way fast_timer +=4 can be used in the loop
 */
-
-#define FREQUENCY_SAMPLE_CLOCK  64000 //15625Hz
 
 
 /* Copied almost verbatim from timer_create(2) man page
@@ -92,8 +91,8 @@ static struct sigaction loop_sa;
            fprintf(stderr, "timer ID is 0x%lx\n", (long) sample_loop_timerid);
 
            /* Start the sample timer */
-           loop_its.it_value.tv_sec = FREQUENCY_SAMPLE_CLOCK / 1000000000;
-           loop_its.it_value.tv_nsec = FREQUENCY_SAMPLE_CLOCK % 1000000000;
+           loop_its.it_value.tv_sec = PERIOD_CLOCK_SAMPLE / 1000000000;
+           loop_its.it_value.tv_nsec = PERIOD_CLOCK_SAMPLE % 1000000000;
            loop_its.it_interval.tv_sec = loop_its.it_value.tv_sec;
            loop_its.it_interval.tv_nsec = loop_its.it_value.tv_nsec;
 
@@ -113,7 +112,7 @@ extern const uint8_t max_voices;
 const uint8_t max_voices=6;
 Voice voices[max_voices]; //TODO: figure out who owns this initialization
 //static uint16_t i=0;
-int main(int argc, char* argv[]) {
+int main() {
 
     /* Install ctrl-C handler, need to restore serial port on quit */
     signal(SIGINT, ctrl_c);
@@ -148,7 +147,7 @@ void timer0_sample_loop(int sig, siginfo_t *si, void *uc) {
     fwrite(&low_byte,1,1,stdout);
     fwrite(&hi_byte,1,1,stdout);
 
-    fast_timer +=4;
+    fast_timer += SAMPLE_DIVIDER;
 
     process_midi_messages();   
 
