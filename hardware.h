@@ -27,6 +27,7 @@ Synth timer (samples) will need 363 machine ticks
 //#define SAMPLE_RATE 18867 //Experimentally the fastest we can run without timing violations 
 
 #define BITS_PER_PART_PER_CYCLE 16
+#define PARTS_PER_CYCLE         (1 << BITS_PER_PART_PER_CYCLE) //currently 2^16
 #define PARTS_PER_CYCLE_HALF    (uint16_t)(1 << (BITS_PER_PART_PER_CYCLE - 1)) // 2^15
 #define PARTS_PER_CYCLE_QUARTER (uint16_t)(1 << (BITS_PER_PART_PER_CYCLE - 2)) // 2^14
 
@@ -37,6 +38,7 @@ Synth timer (samples) will need 363 machine ticks
 #define BPC_AMPL_RATIO          (uint8_t)(BITS_PER_PART_PER_CYCLE - BITS_AMPLITUDE)
 
 #define BITS_WAVE_TABLE_QUANT   8 
+#define WAVE_TABLE_QUANT        (1 << BITS_WAVE_TABLE_QUANT)
 #define BITS_WAVE_TABLE_MIRROR  2 //wave table is 1/4 of total table
 #define WT_AMPL_RATIO           (BITS_PER_PART_PER_CYCLE - BITS_WAVE_TABLE_QUANT - BITS_WAVE_TABLE_MIRROR)
 
