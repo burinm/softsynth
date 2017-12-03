@@ -5,6 +5,7 @@
 */
 
 #include "wave_function.h"
+#include "sin_table.h"
 #include "hardware.h"
 
 uint8_t t_sin_quadrant;
@@ -20,7 +21,8 @@ inline uint8_t t_sin(uint16_t t) {
 #define QUADRANT_2  0x1     // 256 >>8
 #define QUADRANT_1  0x0
 
-    t >>= WT_AMPL_RATIO;
+   t >>= WT_AMPL_RATIO;
+
 
 #if 0
     if (t > QUADRANT_4 - 1) { return                   t_sine_table[MAX_AMPLITUDE - (t - QUADRANT_4) ]  ; }

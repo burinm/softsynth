@@ -6,6 +6,8 @@ SIZE := avr-size
 OBJCOPY := avr-objcopy
 AVRDUDE := avrdude
 
+NATIVE_GCC := gcc
+
 SOURCES := loop.cpp Voice.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c
 HEADERS := circbuf_tiny.h debug.h Envelope.h hardware.h instruments.h midi.h Voice.h wave_function.h
 
@@ -39,10 +41,10 @@ header_deps: $(HEADERS)
 softsynth.elf: $(addprefix $(OBJDIR)/, $(OBJS))
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS)
 
-$(OBJDIR)/%.o: %.c header_deps
+$(OBJDIR)/%.o: %.c header_deps sin_table.h
 	$(CC) -c -o $@ $(CFLAGS) $<
 
-$(OBJDIR)/%.o: %.cpp header_deps
+$(OBJDIR)/%.o: %.cpp header_deps voice_notes.h
 	$(CXX) -c -o $@ $(CXXFLAGS) $<
 
 $(OBJDIR)/%.o: %.S
@@ -57,8 +59,17 @@ softsynth.eep: softsynth.elf
 softsynth.hex: softsynth.elf
 	$(OBJCOPY) -O ihex -R .eeprom  $< $@
 
+voice_notes.h: ./utils/notes.c header_deps
+	$(NATIVE_GCC) -Wall -o ./utils/bin/notes $< -lm
+	./utils/bin/notes 440 -p > voice_notes.h
+
+sin_table.h: ./utils/sin_generate.c header_deps
+	$(NATIVE_GCC) -Wall -o ./utils/bin/sin $< -lm
+	./utils/bin/sin > sin_table.h 
+
 clean:
-	rm -f softsynth.elf softsynth.eep softsynth.hex header_deps
+	rm -f softsynth.elf softsynth.eep softsynth.hex header_deps voice_notes.h sin_table.h
+	rm -f ./utils/bin/sin ./utils/bin/notes
 	cd $(OBJDIR) && rm -f *.o
 
 upload: softsynth.hex size

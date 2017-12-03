@@ -9,10 +9,7 @@
 #include <math.h>
 #include "../hardware.h"
 
-
 int main() {
-
-
 
 uint16_t quant_part = PARTS_PER_CYCLE/WAVE_TABLE_QUANT;
 double half_amplitude = MAX_AMPLITUDE/2;

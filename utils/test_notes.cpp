@@ -29,7 +29,7 @@ void setup_timer();
 
 
 void setup_timer() {
-#define PERIOD_CLOCK_SAMPLE ( (CPU_SPEED * SAMPLE_DIVIDER) / 1000)
+#define PERIOD_CLOCK_SAMPLE ( 1000000000 / SAMPLE_RATE )
 //#define PERIOD_CLOCK_SAMPLE 64000 
 
 /*
@@ -147,7 +147,7 @@ void timer0_sample_loop(int sig, siginfo_t *si, void *uc) {
     fwrite(&low_byte,1,1,stdout);
     fwrite(&hi_byte,1,1,stdout);
 
-    fast_timer += SAMPLE_DIVIDER;
+    fast_timer++;
 
     process_midi_messages();   
 

@@ -3,6 +3,8 @@
     Program to generate a lookup table for MIDI notes
     for a soft synth envelope generator 
 
+    ./bin/notes 440 -p
+
 */
 
 #include <stdio.h>
@@ -12,7 +14,6 @@
 #include "notes.h"
 #include "../hardware.h"
 
-//static const char* note_names[12] = { "A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"};
 static const char* note_names[12] = { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"};
 
 int main(int argc, char* argv[]) {
@@ -22,15 +23,9 @@ int table_mode = 0;
 
 /* Machine timing */
 const double machine_frequency  = CPU_SPEED;
-const double sample_frequency   = TONE_CLOCK;
+const double sample_frequency   = SAMPLE_RATE;
 
-double machine_period = 1 / machine_frequency;
-double timer_ticks_per_sample = machine_frequency / sample_frequency; 
-unsigned int timer_ticks_per_sample_int = (unsigned int)timer_ticks_per_sample + 1;
-
-
-double timer_period = timer_ticks_per_sample_int * machine_period;
-
+double sample_period = 1 / sample_frequency;
 
 /* Frequency of a musical note is calculated with this formula:
 
@@ -45,7 +40,17 @@ const double twelfth_root_of_2 = 1.05946309436;
 double tuning_a = 440;
 
 if (argc > 1) {
+     if (strcmp("-h", argv[1]) == 0) {
+        print_help();
+        return 0;
+    }
+
+
     tuning_a = atof(argv[1]);
+    if (tuning_a == 0 || tuning_a > 65535) {
+        print_help();
+        return (-1);
+    }
 }
 
 if (argc > 2) {
@@ -69,14 +74,14 @@ if (table_mode | phase_mode) {
     printf("We are tuning to A at %10.3f Hz\n", tuning_a);
     printf("Machine is running at %10.3f Hz\n", machine_frequency);
     printf("Samples are at        %10.3f Hz\n", sample_frequency);
-    printf("Synth timer (samples) will need %d machine ticks\n",(unsigned int)timer_ticks_per_sample_int);
+    printf("Period                %10.3e s\n", sample_period);
     printf("-------------------------------------------------\n");
 }
 
 if (table_mode | phase_mode) { printf("*/\n\n"); }
 
-if (phase_mode) { printf("const uint16_t note_phase_mult_table[128] = {\n    "); }
-if (table_mode) { printf("const uint16_t note_ticks_table[128] = {\n    "); }
+if (phase_mode) { printf("const uint16_t Voice::note_phase_mult_table[128] = {\n    "); }
+if (table_mode) { printf("const uint16_t Voice::note_ticks_table[128] = {\n    "); }
 
 
 int octave;
@@ -96,7 +101,7 @@ for (octave=-2;octave<10;octave++) {
         midi_note = note_num + MIDI_A4_NOTE; 
         if (midi_note >=0 && midi_note < 128) { //We are iterating A-F, midi octave starts with C
             frequency = tuning_a * pow(twelfth_root_of_2,note_num);
-            ticks = 1 / (frequency * timer_period); 
+            ticks = sample_frequency / frequency;
             ticks_int = (unsigned int)ticks;
 
             //Phase is 1024 degrees, multiply by 64 to just fit in 2^16 int
@@ -128,4 +133,13 @@ for (octave=-2;octave<10;octave++) {
 if (phase_mode || table_mode) { printf("\n};\n"); }
 
 return 0;
+}
+
+void print_help() {
+        printf("Usage: notes             (output info default 440Hz)\n");
+        printf("       notes <tuning>    (output info on notes, select tuning)\n");
+        printf("       notes <tuning> -t (produce ticks header)\n");
+        printf("       notes <tuning> -p (produce phase header)\n");
+        printf("       notes -h          (this help)\n");
+        printf("  <tuning> is for A4, range = 1 - 65535>\n");
 }

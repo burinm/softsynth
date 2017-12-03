@@ -18,4 +18,7 @@ G9 =  midi not  127
 #define HALF_STEPS_FROM_C   9
 #define OFFSET_A4_NOTE  ((4 * STEPS_IN_OCTAVE)  + HALF_STEPS_FROM_C)
 #define MIDI_A4_NOTE   69 
+
+void print_help();
+
 #endif

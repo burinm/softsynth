@@ -108,17 +108,29 @@ cli();
     TCCR0A = 0;
     TCCR0B = 0;
 
-#if 1
     //OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE) +1;
-    OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE);
+    OCR0A = ((CPU_SPEED/SAMPLE_TIMER_DIV)/SAMPLE_RATE);
     //OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE) +1;
     //OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE);
     OCR0B =0;
+
+    // Set prescaler, timer on
+#if SAMPLE_TIMER_DIV == 1
+    TCCR0B |= (1 << CS00); // timer on, no prescale 
+#elif SAMPLE_TIMER_DIV == 8
     TCCR0B |= (1 << CS01); // divide 8 prescale
-    //TCCR0B |= ( (1 << CS00) | (1 << CS01)); // divide 64 prescale
+#elif SAMPLE_TIMER_DIV == 64
+    TCCR0B |= ( (1 << CS00) | (1 << CS01)); // divide 64 prescale
+#elif SAMPLE_TIMER_DIV == 256
+    TCCR0B |= (1 << CS02); // 256 untested
+#elif SAMPLE_TIMER_DIV == 1024
+    TCCR0B |= ((1 << CS02) | (1 << CS00)); // 1024 untested
+#else
+    #error "SAMPLE_TIMER_DIV value not supported for this platform/implementation"
+#endif
+
     TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
     TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
-#endif
 
 
 // Timer 1, 16bit timer, overflow for Tone Clock
@@ -126,7 +138,7 @@ cli();
     TCCR1A = 0;
     TCCR1B = 0;
 
-#ifndef NON_CORRECTING_TIMING
+#ifdef CORRECTIVE_TIMING
     //Timer will run 62500Mz:
     OCR1A = 0; //Full 16 bits
     TCCR1B |= (1 << CS12);    // divide 256 prescale 
@@ -197,18 +209,18 @@ ISR(TIMER0_COMPA_vect) {                               //26.4us idle, 53.6 stres
 ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
 
 
-#ifdef NON_CORRECTING_TIMING 
-    /*
-        Sounds better than timer read
-         but will wobble if timing loop goes long
-    */
-    fast_timer+= SAMPLE_DIVIDER;
-#else
+#ifdef CORRECTIVE_TIMING 
     /*
         Should sychronize if timing goes long
          But high notes are unstable 
     */
-    fast_timer= TCNT1;
+    fast_timer= TCNT1 >> TIMER_DIV;
+#else
+    /*
+        Sounds better than timer read
+         but will wobble if timing loop goes long
+    */
+    fast_timer++;
 #endif
 
 // Play sample first thing for timing reasons.
