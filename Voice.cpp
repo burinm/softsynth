@@ -21,7 +21,12 @@ namespace SoftSynth {
 void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
     phase = 0;
     wave_function = f;
-    current_note = 0;
+    #ifdef POLYPHONY
+        pool_tiny_init(&note_pool);
+    #else
+        current_note = 0;
+    #endif
+
 
     envelope.init(e);
 }

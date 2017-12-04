@@ -253,13 +253,15 @@ ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
     mixer=0;
 #if 1                                                        // 24.4us idle, 56us stress
     for (i=0;i<MAX_VOICES;++i) {
-        voices[i].step(fast_timer);                         //   4us idle,    8us stress 
-        mixer += (voices[i].sample());                      //   1.4us idle,  6.4us stress
+        mixer += (voices[i].sample(fast_timer));                      //   5.4us idle,  14.4us stress
     }
 #endif
 
-    mixer <<= 2; //Only using 10bits right now
-    //mixer &= (0xfff); //12 bit audio mask
+    #ifdef POLYPHONY
+         mixer <<=1; //11 bit audio mask (pout of 12)
+    #else
+        mixer <<= 2; //Only using 10bits right now
+    #endif
 
     /*
         38400 fastest MIDI bit rate,  10bits/byte = 3840Hz 

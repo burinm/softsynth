@@ -8,20 +8,20 @@ Samples are at         22050.000 Hz
 Synth timer (samples) will need 363 machine ticks
 -------------------------------------------------
 */
+//#define OVERCLOCK
 
 
 #define CPU_SPEED           16000000
 #define SAMPLE_TIMER_DIV    8
 
-//#define OVERCLOCK
 
 #ifdef OVERCLOCK
     #define CORRECTIVE_TIMING
     #define SAMPLE_RATE 31250
     #define TIMER_DIV   1
 #else
-#define SAMPLE_RATE 17000
-//#define SAMPLE_RATE 15625
+//#define SAMPLE_RATE 17000
+#define SAMPLE_RATE 15625
 //#define SAMPLE_RATE 22050
 //#define SAMPLE_RATE 18867 //Experimentally the fastest we can run without timing violations 
 #endif

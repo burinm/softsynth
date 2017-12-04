@@ -153,8 +153,7 @@ void timer0_sample_loop(int sig, siginfo_t *si, void *uc) {
 
     mixer=0;
     for (int i=0;i<max_voices;i++) {
-        voices[i].step(fast_timer);
-        mixer += (voices[i].sample());
+        mixer += (voices[i].sample(fast_timer));
     }
      //mixer <<= 2;
      mixer <<= 4; //adjust volume (16bit dac, with only 12 bits)
