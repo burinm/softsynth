@@ -27,7 +27,6 @@ void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
         current_note = 0;
     #endif
 
-
     envelope.init(e);
 }
 

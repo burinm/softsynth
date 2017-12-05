@@ -14,6 +14,8 @@ extern "C" {
     #include <stdint.h> //avr-g++ doesn't support <cstdint>??
     #include "wave_function.h" //TODO: for random_reset, find better way to encapsulate this
     #include "pool_tiny.h"
+
+    #include <stdio.h> //debug only, remove
 }
 
 #include "Envelope.h"
@@ -54,9 +56,9 @@ class Voice {
         inline void startNote(uint8_t midinote) {
             #ifdef POLYPHONY
                 if (pool_tiny_add(&note_pool,midinote)) {
+fprintf(stderr,"+poolc=%d",note_pool.count);
 
                     envelope.start();
-
 #if 0
                     //Restart envelope at beginning of phrase, or if adding
                     // more notes to decaying envelope
@@ -79,7 +81,10 @@ class Voice {
 
         inline void stopNote(uint8_t midinote) {
             #ifdef POLYPHONY
+
+
                 pool_tiny_remove(&note_pool,midinote);
+fprintf(stderr,"-poolc=%d",note_pool.count);
                 //TODO: polyphony count - only release when empty
                 if (note_pool.count == 0) {
                     envelope.setState(ADSR_RELEASE);
@@ -97,22 +102,33 @@ class Voice {
         void setControl(uint8_t control, uint8_t value);
 
         inline uint16_t sample(uint16_t t) {
-                    envelope.step();
 
-                                                    /*This should be 127,
-                                                       but causes hiccup in waveform
-                                                    */
-                   if (envelope.getState() == ADSR_OFF ) { return 0; }
+                                            /*This should be 127,
+                                               but causes hiccup in waveform
+                                            */
+           if (envelope.getState() == ADSR_OFF ) {
+            #ifdef POLYPHONY
+                for (int i=0; i< TINY_POOL_SIZE; i++) {
+                    if (POOL_DATA_VALID(note_pool.pool[i]) == 0) {
+                        note_pool.pool[i] = 0;
+                    }
+                }
+            #endif
+            return 0;
+            }
 
                 #ifdef POLYPHONY
                     uint8_t n_note;
                     uint16_t total_sample=0;
+
+                    envelope.step();
+
                     while(pool_tiny_get_next(&note_pool,&n_note)) {
-                        if ( POOL_DATA_VALID(n_note) ) {
+                        if ( POOL_DATA_GATE(n_note) ) {
                             phase = t * note_phase_mult_table[POOL_ITEM(n_note)];
 
                             //TODO: Probably should apply envelope at the end - save cycles
-                            total_sample += envelope.apply_envelope(wave_function(phase));
+                            total_sample += (uint8_t)envelope.apply_envelope(wave_function(phase));
                             //total_sample += wave_function(phase);
                         }
                     }
@@ -121,6 +137,7 @@ class Voice {
                     // Automatic 16bit rollover (i.e. phase % PARTS_PER_CYCLE)
                     phase = t * note_phase_mult_table[GET_NOTE(current_note)];  //2.4us per voice
 
+                    envelope.step();
                     return (uint8_t)envelope.apply_envelope(wave_function(phase));
                     //return (uint8_t)(wave_function(phase));
                 #endif

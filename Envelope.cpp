@@ -6,6 +6,8 @@
 
 #include "Envelope.h"
 
+#include <stdio.h> //debug only, remove
+
 namespace SoftSynth {
 
 //Envelope power table
@@ -66,6 +68,7 @@ void Envelope::step() {
         break;
 
         case ADSR_ATTACK:
+//fprintf(stderr,"E.attck()");
             if(adsr_run.attack_ticks == 0) {
                 if (adsr_run.attack_count == 0) { adsr_state=ADSR_DECAY; break;}
                 adsr_envelope_level++; //volume up
@@ -77,6 +80,7 @@ void Envelope::step() {
         break;
 
         case ADSR_DECAY:
+//fprintf(stderr,"E.decay(%d)",adsr_run.sustain_ticks);
             if (adsr_run.decay_ticks == 0) {
                 if (adsr_run.decay_count == 0) { adsr_state=ADSR_SUSTAIN; break;}
                 adsr_envelope_level--; //volume down
@@ -92,14 +96,17 @@ void Envelope::step() {
                 //Hold or continue state machine 
                 if (adsr_run.sustain_hold == 0) { adsr_state=ADSR_RELEASE; break;}
             } else {
+//fprintf(stderr,"E.sustain(--)");
                 adsr_run.sustain_ticks--;
             }
         break;
 
         case ADSR_RELEASE: //This state can be forced with stopNote()
+//fprintf(stderr,"E.release()");
             if (adsr_run.release_ticks == 0) {
                 if (adsr_run.release_count == 0 || adsr_envelope_level == 0) {
                     adsr_state = ADSR_OFF;
+//fprintf(stderr,"E.off()");
                     adsr_envelope_level = 0; //Hmmm, should probably set sustain level first
                     break;
                 }
