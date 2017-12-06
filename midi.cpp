@@ -1,16 +1,26 @@
 #include "midi.h"
 #include <stdlib.h>
-#include "Voice.h"
+
 #include "debug.h"
 
 
 #include <stdio.h> //TODO: remove fprintf debug
 
 
+#ifdef FASTVOICE
+    #include "VoiceFast.cpp"
+#else
+    #include "Voice.h"
+#endif
+
 using namespace SoftSynth;
 
 /* Voices */
-extern Voice voices[];
+#ifdef FASTVOICE
+    extern VoiceFast voices[];
+#else
+    extern Voice voices[];
+#endif
 
 /* midi buffer */
 uint8_t midi_static_alloc[CIRCBUF_TINY_MAX+1];
@@ -112,7 +122,9 @@ void process_midi_messages() {
                         }
 
                         if (midi_byte_number == 1) {
+                        #ifndef FASTVOICE
                             voices[midi_current_channel].setControl(midi_current_control,byte_out);
+                        #endif
                             midi_byte_number=0;
                             break;
                         }

@@ -36,15 +36,25 @@ extern "C" {
 
 #include "debug.h"
 
-#include "Voice.h"
+#ifdef FASTVOICE
+    #include "VoiceFast.cpp"
+#else
+    #include "Voice.h"
+    #include "instruments.h"
+#endif
+
 #include "Envelope.h"
 #include "midi.h"
-#include "instruments.h"
 
 using namespace SoftSynth;
 
+
 /* Voices */
-Voice voices[MAX_VOICES];
+#ifdef FASTVOICE
+    VoiceFast voices[MAX_VOICES];
+#else
+    Voice voices[MAX_VOICES];
+#endif
 
 extern circbuf_tiny_t midi_buf;
 
@@ -81,6 +91,9 @@ sei();
     DDRB = 0B00111111; //pins 0-5 (sound msb)
     PORTB = 0x0;
 
+#ifdef FASTVOICE
+    voices[0].init(t_triangle);
+#else
     /* Initalize Voices */
     //voices[0].init(t_pulse, flute_instrument1);
     voices[0].init(t_sin, fatty_base_instrument1);
@@ -98,6 +111,7 @@ sei();
     //voices[3].init(t_noise, flute_instrument2);
     //voices[3].init(t_pulse, fatty_base_instrument1);
     voices[3].init(t_triangle, fatty_base_instrument1);
+#endif
 
 
 //Interrupts off to setup timers

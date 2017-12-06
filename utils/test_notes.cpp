@@ -9,7 +9,11 @@
 #include <sched.h> //yield
 
 #include "test_midi.h"
-#include "../Voice.h"
+#ifdef FASTVOICE
+    #include "../VoiceFast.cpp"
+#else
+    #include "../Voice.h"
+#endif
 #include "../Envelope.h"
 #include "../midi.h"
 #include "../instruments.h"
@@ -108,10 +112,15 @@ static struct sigaction loop_sa;
 
 
 /* Voices */
+#ifdef FASTVOICE
+    const uint8_t max_voices=1;
+    VoiceFast voices[max_voices]; //TODO: figure out who owns this initialization
+#else
+    const uint8_t max_voices=6;
+    Voice voices[max_voices]; //TODO: figure out who owns this initialization
+#endif
+
 extern const uint8_t max_voices;
-const uint8_t max_voices=6;
-Voice voices[max_voices]; //TODO: figure out who owns this initialization
-//static uint16_t i=0;
 int main() {
 
     /* Install ctrl-C handler, need to restore serial port on quit */
@@ -120,6 +129,9 @@ int main() {
     //midi_init();
     serial_port_setup();
 
+#ifdef FASTVOICE
+    voices[0].init(t_triangle);
+#else
     voices[0].init(t_sin, fatty_base_instrument1);
     voices[1].init(t_pulse, flute_instrument2);
     voices[2].init(t_noise, drum_instrument1);
@@ -128,6 +140,7 @@ int main() {
 
     voices[4].init(t_pulse,fatty_base_instrument1);
     voices[5].init(t_pulse,fatty_base_instrument1);
+#endif
 
     setup_timer();
 

@@ -16,8 +16,6 @@ extern "C" {
 
 namespace SoftSynth {
 
-#include "voice_notes.h"
-
 
 void Voice::init(uint8_t (*f)(uint16_t), envelope_t &e) {
     phase = 0;

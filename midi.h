@@ -7,9 +7,6 @@
 #ifndef __MIDI_H__
 #define __MIDI_H__
 
-#include "Voice.h"
-using namespace SoftSynth;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

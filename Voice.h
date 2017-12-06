@@ -21,6 +21,7 @@ extern "C" {
 #include "NotePoolTiny.cpp"
 #include "utils/notes.h"
 
+extern const uint16_t note_phase_mult_table[128];
 
 
 namespace SoftSynth {
@@ -39,7 +40,6 @@ enum VOICE_CONTROLS {
 
 class Voice {
     public:
-        static const uint16_t note_phase_mult_table[128];
         envelope_t adsr_reset;    //Reset values for envelope
 
         void init(uint8_t (*f)(uint16_t), envelope_t&);

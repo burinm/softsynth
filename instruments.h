@@ -2,6 +2,7 @@
 #define __INSTRUMENTS_H__
 
 #include "Envelope.h"
+using namespace SoftSynth;
 
 envelope_t flute_instrument1 = {
 

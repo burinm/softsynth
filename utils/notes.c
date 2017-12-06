@@ -38,6 +38,7 @@ double sample_period = 1 / sample_frequency;
 
 const double twelfth_root_of_2 = 1.05946309436;
 double tuning_a = 440;
+char* function_prefix = ""; 
 
 if (argc > 1) {
      if (strcmp("-h", argv[1]) == 0) {
@@ -61,8 +62,13 @@ if (argc > 2) {
         table_mode=1;
     }
 }
+
+if (argc > 3) {
+    function_prefix=argv[3];
+}
     
 if (table_mode | phase_mode) {
+    printf("#include <stdint.h>\n");
     printf("/*\n");
     if (table_mode) {
         printf("    A4 is %10.3f Hz, machine running at %10.3f Hz\n",tuning_a,machine_frequency);
@@ -80,8 +86,8 @@ if (table_mode | phase_mode) {
 
 if (table_mode | phase_mode) { printf("*/\n\n"); }
 
-if (phase_mode) { printf("const uint16_t Voice::note_phase_mult_table[128] = {\n    "); }
-if (table_mode) { printf("const uint16_t Voice::note_ticks_table[128] = {\n    "); }
+if (phase_mode) { printf("const uint16_t %snote_phase_mult_table[128] = {\n    ",function_prefix); }
+if (table_mode) { printf("const uint16_t %snote_ticks_table[128] = {\n    ",function_prefix); }
 
 
 int octave;
@@ -140,6 +146,7 @@ void print_help() {
         printf("       notes <tuning>    (output info on notes, select tuning)\n");
         printf("       notes <tuning> -t (produce ticks header)\n");
         printf("       notes <tuning> -p (produce phase header)\n");
+        printf("       notes <tuning> -p/-t <function_prefix>  (produce phase header)\n");
         printf("       notes -h          (this help)\n");
         printf("  <tuning> is for A4, range = 1 - 65535>\n");
 }

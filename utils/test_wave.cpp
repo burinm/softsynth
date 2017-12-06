@@ -33,8 +33,8 @@ uint16_t amplitude=0;
 uint32_t counter=0;
 uint8_t (*wave_function)(uint16_t);
 Envelope e;
-e.init(test_instrument);
-e.start();
+e.init();
+e.start(test_instrument);
 e.test_set_adsr_envelope_level(127);
 
 wave_function=t_sin;
