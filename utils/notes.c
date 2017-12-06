@@ -110,8 +110,8 @@ for (octave=-2;octave<10;octave++) {
             ticks = sample_frequency / frequency;
             ticks_int = (unsigned int)ticks;
 
-            //Phase is 1024 degrees, multiply by 64 to just fit in 2^16 int
-            // To find phase, tick_number * phase_multiplier[note] >> 6
+            //Phase is 2^16 parts
+            // To find phase, tick_number * phase_multiplier[note]
             phase_multiplier = round(PARTS_PER_CYCLE/ticks);
             phase_multiplier_int = (unsigned int)phase_multiplier;
 #if 1
