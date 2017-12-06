@@ -13,27 +13,17 @@
 extern "C" {
     #include <stdint.h> //avr-g++ doesn't support <cstdint>??
     #include "wave_function.h" //TODO: for random_reset, find better way to encapsulate this
-    #include "pool_tiny.h"
 
     #include <stdio.h> //debug only, remove
 }
 
 #include "Envelope.h"
+#include "NotePoolTiny.cpp"
 #include "utils/notes.h"
 
 
 
 namespace SoftSynth {
-
-//Current note bit 7 is gate, bits 0-6 are note
-#define NOTE_GATE_BIT   7
-#define NOTE_GATE_MASK  (1 << NOTE_GATE_BIT)
-#define NOTE_OFF(u8) ((u8) &= ~NOTE_GATE_MASK)
-#define NOTE_ON(u8)  ((u8) |= NOTE_GATE_MASK)
-#define IS_NOTE_ON(u8)  ((u8) & NOTE_GATE_MASK)
-#define GET_NOTE(u8)    (u8) & ~NOTE_GATE_MASK
-//Setting note also turns on gate
-#define SET_NOTE(u8,note)    ((u8) = (note | (1<<NOTE_GATE_BIT)))
 
 enum VOICE_CONTROLS {
                       ATTACK_COUNT_CTRL = 14,
@@ -50,30 +40,20 @@ enum VOICE_CONTROLS {
 class Voice {
     public:
         static const uint16_t note_phase_mult_table[128];
+        envelope_t adsr_reset;    //Reset values for envelope
 
         void init(uint8_t (*f)(uint16_t), envelope_t&);
 
         inline void startNote(uint8_t midinote) {
             #ifdef POLYPHONY
-                if (pool_tiny_add(&note_pool,midinote)) {
-fprintf(stderr,"+poolc=%d",note_pool.count);
-
-                    envelope.start();
-#if 0
-                    //Restart envelope at beginning of phrase, or if adding
-                    // more notes to decaying envelope
-
-                    if (envelope.getState() == ADSR_OFF) {
-                    } else {
-                        if (envelope.getState() >ADSR_SUSTAIN) {
-                            envelope.setState(ADSR_SUSTAIN);
-                        }
-                    }
-#endif
-                } //else, too many notes, can't add
+                note_t *temp_note;
+                temp_note = note_pool.pool_tiny_add(midinote);
+                if (temp_note) {
+                    temp_note->envelope.start(adsr_reset);
+                }
             #else
-                SET_NOTE(current_note,midinote);
-                envelope.start();
+                current_note.note = midinote;
+                current_note.envelope.start(adsr_reset);
             #endif
 
             random_reset();
@@ -81,18 +61,12 @@ fprintf(stderr,"+poolc=%d",note_pool.count);
 
         inline void stopNote(uint8_t midinote) {
             #ifdef POLYPHONY
+                note_t *temp_note;
+                temp_note = note_pool.pool_tiny_get(midinote);
+                temp_note->envelope.setState(ADSR_RELEASE);
 
-
-                pool_tiny_remove(&note_pool,midinote);
-fprintf(stderr,"-poolc=%d",note_pool.count);
-                //TODO: polyphony count - only release when empty
-                if (note_pool.count == 0) {
-                    envelope.setState(ADSR_RELEASE);
-                }
             #else
-                //NOTE_OFF(current_note);
-                //NOTE_OFF(midinote);
-                envelope.setState(ADSR_RELEASE);
+                current_note.envelope.setState(ADSR_RELEASE);
                 //should we reset envelope here?
             #endif
 
@@ -103,42 +77,37 @@ fprintf(stderr,"-poolc=%d",note_pool.count);
 
         inline uint16_t sample(uint16_t t) {
 
-                                            /*This should be 127,
-                                               but causes hiccup in waveform
-                                            */
-           if (envelope.getState() == ADSR_OFF ) {
-            #ifdef POLYPHONY
-                for (int i=0; i< TINY_POOL_SIZE; i++) {
-                    if (POOL_DATA_VALID(note_pool.pool[i]) == 0) {
-                        note_pool.pool[i] = 0;
-                    }
-                }
-            #endif
-            return 0;
-            }
-
                 #ifdef POLYPHONY
-                    uint8_t n_note;
+                    note_t *n_note;
                     uint16_t total_sample=0;
 
-                    envelope.step();
 
-                    while(pool_tiny_get_next(&note_pool,&n_note)) {
-                        if ( POOL_DATA_GATE(n_note) ) {
-                            phase = t * note_phase_mult_table[POOL_ITEM(n_note)];
+                    while( (n_note = note_pool.pool_tiny_get_all()) ) {
+
+                        if (n_note->envelope.getState() == ADSR_OFF ) {
+                            continue; 
+                        }
+                        n_note->envelope.step(adsr_reset);
+                            phase = t * note_phase_mult_table[n_note->note];
 
                             //TODO: Probably should apply envelope at the end - save cycles
-                            total_sample += (uint8_t)envelope.apply_envelope(wave_function(phase));
+                            total_sample += (uint8_t)n_note->envelope.apply_envelope(wave_function(phase));
                             //total_sample += wave_function(phase);
-                        }
                     }
                     return total_sample;
                 #else
-                    // Automatic 16bit rollover (i.e. phase % PARTS_PER_CYCLE)
-                    phase = t * note_phase_mult_table[GET_NOTE(current_note)];  //2.4us per voice
 
-                    envelope.step();
-                    return (uint8_t)envelope.apply_envelope(wave_function(phase));
+                                            /*This should be 127,
+                                               but causes hiccup in waveform
+                                            */
+                    if (current_note.envelope.getState() == ADSR_OFF ) {
+                     return 0;
+                    }
+                    // Automatic 16bit rollover (i.e. phase % PARTS_PER_CYCLE)
+                    phase = t * note_phase_mult_table[current_note.note];  //2.4us per voice
+
+                    current_note.envelope.step(adsr_reset);
+                    return (uint8_t)current_note.envelope.apply_envelope(wave_function(phase));
                     //return (uint8_t)(wave_function(phase));
                 #endif
         }
@@ -149,13 +118,13 @@ fprintf(stderr,"-poolc=%d",note_pool.count);
 
         #ifdef POLYPHONY
             /* Note pool */
-            tiny_pool_t note_pool;
+            NotePoolTiny note_pool;
+            uint8_t note_count;
         #else
-            uint8_t current_note;
+            note_t current_note;
         #endif
 
         uint8_t (*wave_function)(uint16_t);
-        Envelope envelope;
 };
 
 

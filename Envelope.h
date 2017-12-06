@@ -21,7 +21,6 @@ typedef enum ADSR_STATE_TYPE { ADSR_OFF=0,
                        ADSR_RELEASE
 } adsr_state_t;
 
-
 /*
   Envelope segment lengths go for x*y (ticks*counts),
    and will change the envelope_level by y counts.
@@ -52,26 +51,26 @@ class Envelope {
     public:
         static const uint8_t envelope_table[128];
 
-        void init(envelope_t&);
-        inline void start() {
+        void init();
+        inline void start(envelope_t &e) {
             adsr_envelope_level = 0;
             adsr_state = ADSR_ATTACK;
 
             //Faster than memcpy
-            adsr_run.attack_ticks = adsr_reset.attack_ticks;
-            adsr_run.attack_count = adsr_reset.attack_count;
+            adsr_run.attack_ticks = e.attack_ticks;
+            adsr_run.attack_count = e.attack_count;
 
-            adsr_run.decay_ticks = adsr_reset.decay_ticks;
-            adsr_run.decay_count = adsr_reset.decay_count;
+            adsr_run.decay_ticks = e.decay_ticks;
+            adsr_run.decay_count = e.decay_count;
 
-            adsr_run.sustain_ticks = adsr_reset.sustain_ticks;
-            adsr_run.sustain_hold = adsr_reset.sustain_hold;
+            adsr_run.sustain_ticks = e.sustain_ticks;
+            adsr_run.sustain_hold = e.sustain_hold;
 
-            adsr_run.release_ticks = adsr_reset.release_ticks;
-            adsr_run.release_count = adsr_reset.release_count;
+            adsr_run.release_ticks = e.release_ticks;
+            adsr_run.release_count = e.release_count;
         }
 
-        void step();
+        void step(envelope_t& e);
 
         inline void setState(adsr_state_t s) { adsr_state = s; };
         inline adsr_state_t getState(void) { return adsr_state; };
@@ -81,7 +80,6 @@ class Envelope {
              return ( ((uint16_t)(wave) *  envelope_table[adsr_envelope_level]) >>8);
         }
 
-        envelope_t  adsr_reset;    //Reset values for envelope
 
         void test_set_adsr_envelope_level(uint8_t l) {adsr_envelope_level = l;}
 
@@ -89,7 +87,7 @@ class Envelope {
         uint8_t adsr_envelope_level;
         adsr_state_t adsr_state;
 
-        envelope_t  adsr_run;      //Running count of envelope parameters
+        envelope_t  adsr_run;     //Running count of envelope parameters
 };
 
 }
