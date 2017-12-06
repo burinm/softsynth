@@ -120,6 +120,7 @@ sei();
 //Interrupts off to setup timers
 cli();
 
+#if 0
 // Timer 0, for Sample Loop
     //Defaults for timer0 registers
     TCCR0A = 0;
@@ -147,7 +148,8 @@ cli();
 #endif
 
     TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
-    TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
+    //TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
+#endif
 
 
 // Timer 1, 16bit timer, overflow for Tone Clock
@@ -155,17 +157,16 @@ cli();
     TCCR1A = 0;
     TCCR1B = 0;
 
-#ifdef CORRECTIVE_TIMING
     //Timer will run 62500Mz:
     OCR1A = 0; //Full 16 bits
-    TCCR1B |= (1 << CS12);    // divide 256 prescale 
+    //TCCR1B |= (1 << CS10) | (1 << CS11);      // divide 64 prescale
+    TCCR1B |= (1 << CS12);                    // divide 256 prescale
+    //TCCR1B |= (1<<CS10) | (1 << CS12);        // divide 1024 prescale
 
     //OCR1A = (CPU_SPEED/SAMPLE_RATE); //Full 16 bits
-    //TCCR1B |= (1<<CS10) | (1 << CS12);    // divide 1024 prescale 
     //TCCR1B |= (1 << WGM12); //CTC mode, top is OCR1A
     //TCCR1B |= (1 << CS10);    // no prescaler, enabled
     //TIMSK1 |= (1 << OCIE1A); //enable timer compare interrupt
-#endif
 
     #define BAUD_MIDI    31250
     #define BAUD_LINUX   38400 
@@ -198,18 +199,6 @@ ISR(BADISR_vect)
 //PORTD |=0xf0;
 }
 
-
-int main()
-{
-setup();
-
-    for(;;) {
-        set_sleep_mode(SLEEP_MODE_IDLE);
-        sleep_enable();
-        sleep_mode();
-    }
-}
-
 //For speed, don't allocate these every time
 static uint16_t mixer;
 static uint8_t i=0;
@@ -219,84 +208,73 @@ static uint16_t fast_timer=0;
 
 //Interrupts are off on the AVR Atmel328p achitechture
 //Update output sample routine
-ISR(TIMER0_COMPA_vect) {                               //26.4us idle, 53.6 stress
+int main()
+{
+setup();
 
-//Couldn't get this to work without spending precious cycles
-//jitter_undo();
-//ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
+    //Run a loop as fast as we can, then read the timer to see where we are
+    // i.e. "infinite sample rate"
+    for(;;) {
+        //ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
 
+        fast_timer = TCNT1 ;
 
-#ifdef CORRECTIVE_TIMING 
-    /*
-        Should sychronize if timing goes long
-         But high notes are unstable 
-    */
-    fast_timer= TCNT1 >> TIMER_DIV;
-#else
-    /*
-        Sounds better than timer read
-         but will wobble if timing loop goes long
-    */
-    fast_timer++;
-#endif
+        // Play sample first thing for timing reasons.
+        /*
+            12 bit digital audio!
 
-// Play sample first thing for timing reasons.
-//
+            PORTD - bit  0  , UART RX
+                    bit  1  , UART TX - can ignore UART, and use as debug out
+                    bits 2-7, LSBits of output
 
-/*
-    12 bit digital audio!
+            PORTB - bits 0-5, MSBits of output
+                    bits 6-7, unavailable
 
-    PORTD - bit  0  , UART RX
-            bit  1  , UART TX - can ignore UART, and use as debug out 
-            bits 2-7, LSBits of output 
+             Change the MSBs last because we can't synchronize writing to
+              two ports at once. This will be a less glitchy sound
+              in theory..
+        */
 
-    PORTB - bits 0-5, MSBits of output
-            bits 6-7, unavailable
+            // LSBits - This leaves TX and RX (now debug) bits 0-1 alone
+            portd_tmp = (PORTD & 0x3);
+            PORTD = portd_tmp | ((uint8_t)(mixer & 0x3F) << 2);
 
-     Change the MSBs last because we can't synchronize writing to
-      two ports at once. This will be a less glitchy sound
-      in theory..
-*/
+            // MSBits - Mask out unavailable bits 6,7
+            PORTB = (mixer & 0xFC0) >>6;
 
-    // LSBits - This leaves TX and RX (now debug) bits 0-1 alone
-    portd_tmp = (PORTD & 0x3);
-    PORTD = portd_tmp | ((uint8_t)(mixer & 0x3F) << 2);
+            process_midi_messages();
 
-    // MSBits - Mask out unavailable bits 6,7
-    PORTB = (mixer & 0xFC0) >>6;
+            mixer=0;
+            for (i=0;i<MAX_VOICES;++i) {
+                mixer += (voices[i].sample(fast_timer));
+            }
 
-    process_midi_messages();            //2us
+            #ifdef POLYPHONY
+                 mixer <<=1; //11 bit audio mask (pout of 12)
+            #else
+                #ifdef FASTVOICE
+                    mixer <<= 1;
+                #else //no special settings
+                    mixer <<= 2; //Only using 10bits right now
+                #endif
+            #endif
 
-    mixer=0;
-                                                        // 24.4us idle, 56us stress
-    for (i=0;i<MAX_VOICES;++i) {
-        mixer += (voices[i].sample(fast_timer));                      //   5.4us idle,  14.4us stress
+            /*
+                38400 fastest MIDI bit rate,  10bits/byte = 3840Hz
+                 so, just checking each sample is plenty fast
+                 enough to ovoid UART buffer overflow.
+                No need to complicate timing with another interrupt
+            */
+
+            static uint8_t b;
+            if (UCSR0A & (1<<RXC0)) {
+                b = (uint8_t)UDR0;
+                if (circbuf_tiny_write(&midi_buf,b) == 0) {
+                    ERROR_SET(ERROR_OVERFLOW);
+                }
+            }
+        //ERROR_SET(ERROR_UNMARK);
     }
-
-    #ifdef POLYPHONY
-         mixer <<=1; //11 bit audio mask (pout of 12)
-    #else
-        #ifdef FASTVOICE
-        #else //no special settings
-            mixer <<= 2; //Only using 10bits right now
-        #endif
-    #endif
-
-    /*
-        38400 fastest MIDI bit rate,  10bits/byte = 3840Hz 
-         so, just checking each sample is plenty fast
-         enough to ovoid UART buffer overflow.
-        No need to complicate timing with another interrupt
-    */
-                                                            //  .5us idle, 2.2us stress
-    static uint8_t b;
-    if (UCSR0A & (1<<RXC0)) { 
-        b = (uint8_t)UDR0;
-        if (circbuf_tiny_write(&midi_buf,b) == 0) {
-            ERROR_SET(ERROR_OVERFLOW);
-        }
-    }
-//ERROR_SET(ERROR_UNMARK);
 }
 
 #if 0

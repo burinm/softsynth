@@ -128,7 +128,8 @@ void process_midi_messages() {
                             switch (midi_current_control) {
                                 case MIDI_STATUS_CONTROL_MODE_ALL_NOTES_OFF:
                                     if (byte_out == MIDI_STATUS_CONTROL_MODE_ALL_NOTES_OFF_V) {
-                                       //voices[midi_current_channel].off();
+                                       voices[midi_current_channel].off();
+    //fprintf(stderr,"(ALL_OFF channel=%d)",midi_current_channel);
                                     }
                                     break;
                                 default:

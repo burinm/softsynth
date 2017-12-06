@@ -46,11 +46,11 @@ class Voice {
 
         void off() {
 
-            #ifdef POLYPHONY
-                #warning not implemented
-            #else
-                current_note.envelope.setState(ADSR_OFF);
-            #endif
+        #ifdef POLYPHONY
+            note_pool.init();
+        #else
+            current_note.envelope.setState(ADSR_OFF);
+        #endif
 
         }
 
