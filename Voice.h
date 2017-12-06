@@ -44,6 +44,16 @@ class Voice {
 
         void init(uint8_t (*f)(uint16_t), envelope_t&);
 
+        void off() {
+
+            #ifdef POLYPHONY
+                #warning not implemented
+            #else
+                current_note.envelope.setState(ADSR_OFF);
+            #endif
+
+        }
+
         inline void startNote(uint8_t midinote) {
             #ifdef POLYPHONY
                 note_t *temp_note;
@@ -52,7 +62,7 @@ class Voice {
 //fprintf(stderr,"(+%d)",temp_note->note);
                     temp_note->envelope.start(adsr_reset);
                 } else {
-fprintf(stderr,"(+bork couldn't add note:%d,0x%x!)",midinote,temp_note);
+//fprintf(stderr,"(+bork couldn't add note:%d,0x%x!)",midinote,temp_note);
                 }
             #else
                 current_note.note = midinote;
@@ -99,7 +109,7 @@ fprintf(stderr,"(+bork couldn't add note:%d,0x%x!)",midinote,temp_note);
         //fprintf(stderr,"(-%d)",n_note->note);
                             uint8_t delete_count;
                             if ( (delete_count = note_pool.removeValue(n_note->note)) ==0 ) {
-                                fprintf(stderr,"(BORK couldn't remove-%d)",n_note->note);
+                                //fprintf(stderr,"(BORK couldn't remove-%d)",n_note->note);
                             }
         //fprintf(stderr,"(removed n%d,%d)",delete_count,n_note->note);
                             continue; 

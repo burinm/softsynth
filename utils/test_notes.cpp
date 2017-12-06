@@ -130,7 +130,9 @@ int main() {
     serial_port_setup();
 
 #ifdef FASTVOICE
-    voices[0].init(t_triangle);
+    voices[0].init(t_pulse);
+    //voices[1].init(t_pulse);
+    //voices[2].init(t_triangle);
 #else
     voices[0].init(t_sin, fatty_base_instrument1);
     voices[1].init(t_pulse, flute_instrument2);

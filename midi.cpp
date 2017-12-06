@@ -45,6 +45,7 @@ void process_midi_messages() {
     {
         //Get byte from buffer
         circbuf_tiny_read(&midi_buf, &byte_out);
+//fprintf(stderr,"[0x%x]",byte_out);
 
     #if 1 //Midi processing
         static uint8_t midi_byte_number = 0; 
@@ -61,15 +62,16 @@ void process_midi_messages() {
                     switch(MIDI_GET_SYSTEM_MESSAGE(byte_out)) {
                         case MIDI_SYSTEM_MESSAGE_REALTIME_SYSTEMRESET:
                             //TODO: synth.reset();
-                            fprintf(stderr,"[RESET]");
+                            //fprintf(stderr,"[RESET]");
                             break;
                         default:
-                            fprintf(stderr,"[Unhandled system realtime %d]",MIDI_GET_SYSTEM_MESSAGE(byte_out));
+                            //fprintf(stderr,"[Unhandled system realtime %d]",MIDI_GET_SYSTEM_MESSAGE(byte_out));
+
                             break;
                     }
 
                 } else { //COMMON, reset running status
-                            fprintf(stderr,"[Unhandled system common %d]",MIDI_GET_SYSTEM_MESSAGE(byte_out));
+                            //fprintf(stderr,"[Unhandled system common %d]",MIDI_GET_SYSTEM_MESSAGE(byte_out));
                     midi_running_status=MIDI_STATUS_NONE;
                     midi_byte_number=0;
                 }
@@ -122,16 +124,26 @@ void process_midi_messages() {
                         }
 
                         if (midi_byte_number == 1) {
-                        #ifndef FASTVOICE
-                            voices[midi_current_channel].setControl(midi_current_control,byte_out);
-                        #endif
-                            midi_byte_number=0;
-                            break;
-                        }
 
+                            switch (midi_current_control) {
+                                case MIDI_STATUS_CONTROL_MODE_ALL_NOTES_OFF:
+                                    if (byte_out == MIDI_STATUS_CONTROL_MODE_ALL_NOTES_OFF_V) {
+                                       //voices[midi_current_channel].off();
+                                    }
+                                    break;
+                                default:
+
+                                #ifndef FASTVOICE
+                                    voices[midi_current_channel].setControl(midi_current_control,byte_out);
+                                #endif
+                                    break;
+                            };
+                            midi_byte_number=0;
+                        }
                         break;
+
                     default:
-                        fprintf(stderr,"[Unhandled running status!!-->0x%x]",midi_running_status);
+                        //fprintf(stderr,"[Unhandled running status!!-->0x%x]",midi_running_status);
                         midi_byte_number = 0;
                         break;
                 }

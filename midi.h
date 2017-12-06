@@ -30,6 +30,9 @@ extern "C" {
 #define MIDI_STATUS_NOTE_ON                 0x9
 #define MIDI_STATUS_POLY_KEY_PRESSURE       0xa
 #define MIDI_STATUS_CONTROL_CHANGE          0xb
+    #define MIDI_STATUS_CONTROL_MODE_ALL_NOTES_OFF        0x7b
+        #define MIDI_STATUS_CONTROL_MODE_ALL_NOTES_OFF_V      0x0
+
 #define MIDI_STATUS_PROGRAM_CHANGE          0xc
 #define MIDI_STATUS_CHANNEL_PRESSURE        0xd
 #define MIDI_STATUS_PITCH_BEND              0xe

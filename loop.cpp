@@ -92,7 +92,10 @@ sei();
     PORTB = 0x0;
 
 #ifdef FASTVOICE
-    voices[0].init(t_triangle);
+    voices[0].init(t_pulse);
+    voices[1].init(t_pulse);
+    voices[2].init(t_triangle);
+    //voices[0].init(t_triangle);
 #else
     /* Initalize Voices */
     //voices[0].init(t_pulse, flute_instrument1);
@@ -220,7 +223,7 @@ ISR(TIMER0_COMPA_vect) {                               //26.4us idle, 53.6 stres
 
 //Couldn't get this to work without spending precious cycles
 //jitter_undo();
-ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
+//ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
 
 
 #ifdef CORRECTIVE_TIMING 
@@ -273,7 +276,10 @@ ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
     #ifdef POLYPHONY
          mixer <<=1; //11 bit audio mask (pout of 12)
     #else
-        mixer <<= 2; //Only using 10bits right now
+        #ifdef FASTVOICE
+        #else //no special settings
+            mixer <<= 2; //Only using 10bits right now
+        #endif
     #endif
 
     /*
@@ -290,7 +296,7 @@ ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
             ERROR_SET(ERROR_OVERFLOW);
         }
     }
-ERROR_SET(ERROR_UNMARK);
+//ERROR_SET(ERROR_UNMARK);
 }
 
 #if 0
