@@ -9,7 +9,7 @@ AVRDUDE := avrdude
 NATIVE_GCC := gcc
 
 SOURCES := loop.cpp Voice.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c NotePoolTiny.cpp
-HEADERS := circbuf_tiny.h debug.h Envelope.h hardware.h instruments.h midi.h Voice.h wave_function.h
+HEADERS := circbuf_tiny.h debug.h Envelope.h hardware.h instruments.h midi.h Voice.h wave_function.h NotePoolTiny.cpp
 
 CFLAGS += -flto -DF_CPU=16000000UL -mmcu=atmega328p
 #CFLAGS += -Os #27.3us

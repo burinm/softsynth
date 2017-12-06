@@ -70,7 +70,6 @@ void process_midi_messages() {
             if (midi_current_channel < MAX_VOICES) {
                 switch(midi_running_status) {
                     case    MIDI_STATUS_NOTE_ON:
-    //fprintf(stderr,"Note on-->%d",byte_out);
                         if (midi_byte_number == 0) {
                             midi_current_note = byte_out;
                             midi_byte_number++;
@@ -79,9 +78,10 @@ void process_midi_messages() {
 
                         if (midi_byte_number == 1) {
                             if (byte_out == 0 ) { //zero velocity = NOTE_OFF
-    //fprintf(stderr,"Note off velocity-->0x%x",midi_current_note);
+    //fprintf(stderr,"Note off velocity-->%d",midi_current_note);
                                 voices[midi_current_channel].stopNote(midi_current_note);
                             } else {
+    //fprintf(stderr,"(Note on-->%d)",midi_current_note);
                                 voices[midi_current_channel].startNote(midi_current_note);
                             }
                             //voice0.velocity = byte_out;
@@ -91,16 +91,19 @@ void process_midi_messages() {
                         break;
                     case    MIDI_STATUS_NOTE_OFF:
                         if (midi_byte_number == 0) {
-    //fprintf(stderr,"Note off-->0x%x",byte_out);
-                                voices[midi_current_channel].stopNote(byte_out);
+                            midi_current_note = byte_out;
                             midi_byte_number++;
+                            break;
                         }
 
                         if (midi_byte_number == 1) {
+    //fprintf(stderr,"(Note off-->%d)",midi_current_note);
+                            voices[midi_current_channel].stopNote(midi_current_note);
                             //Release velocity unused
                             midi_byte_number=0;
                         }
                         break;
+
                     case    MIDI_STATUS_CONTROL_CHANGE:
                         if (midi_byte_number == 0) {
                             midi_current_control = byte_out;
@@ -114,10 +117,9 @@ void process_midi_messages() {
                             break;
                         }
 
-
                         break;
                     default:
-    fprintf(stderr,"[Unhandled running status!!-->0x%x]",midi_running_status);
+                        fprintf(stderr,"[Unhandled running status!!-->0x%x]",midi_running_status);
                         midi_byte_number = 0;
                         break;
                 }

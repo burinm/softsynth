@@ -251,11 +251,10 @@ ERROR_SET(ERROR_MARK); //Diagnostics cause pops, clicks
     process_midi_messages();            //2us
 
     mixer=0;
-#if 1                                                        // 24.4us idle, 56us stress
+                                                        // 24.4us idle, 56us stress
     for (i=0;i<MAX_VOICES;++i) {
         mixer += (voices[i].sample(fast_timer));                      //   5.4us idle,  14.4us stress
     }
-#endif
 
     #ifdef POLYPHONY
          mixer <<=1; //11 bit audio mask (pout of 12)

@@ -3,9 +3,14 @@
 
 /* 8 entry, tiny pool - currently developed for a polyphonic MIDI keypress 
     Pool stores uint8_t, item is 0-127, higher bits left alone for adding custom flags
+
+    Adding the same value will not add it twice, so the remove short circuits on a find
+    Adding is currently terribly inefficient
 */
 #include <stdint.h>
 #include "Envelope.h"
+
+//#include <stdio.h> //remove after debugging
 
 namespace SoftSynth {
 
@@ -27,6 +32,7 @@ class NotePoolTiny {
 
     public:
         inline void init() {
+                index=0;
                 empty_state=0;
 
                 for (uint8_t i=0;i<POOL_TINY_SIZE;i++) {
@@ -35,9 +41,20 @@ class NotePoolTiny {
                 }
         }
 
-        inline note_t* pool_tiny_add(uint8_t v) {
+        inline note_t* addValue(uint8_t v) {
             uint8_t count = 0;
 
+            while (count < POOL_TINY_SIZE) {
+                if (POOL_TINY_IS_FULL(count)) {
+                    if ( notes[count].note == v) {
+                        //Note already added
+                        return &notes[count];
+                    }
+                }
+                count++;
+            }
+
+            count = 0;
             while (count < POOL_TINY_SIZE) {
                 if (POOL_TINY_IS_FULL(count) == 0) {
                     notes[count].note = v;
@@ -49,26 +66,29 @@ class NotePoolTiny {
             return 0;
         }
 
-        inline void pool_tiny_remove(uint8_t v) {
+        inline uint8_t removeValue(uint8_t v) {
+            uint8_t found=0;
             uint8_t count = 0;
 
             while (count < POOL_TINY_SIZE) {
-                if ( notes[count].note == v) {
-                    if (POOL_TINY_IS_FULL(count)) {
+                if (POOL_TINY_IS_FULL(count)) {
+                    if ( notes[count].note == v) {
                         POOL_TINY_MARK_EMPTY(count);
-                        break;
+                        found++;
+                        return found;
                     }
                 }
                 count++;
             }
+            return found;
         }
 
-        inline note_t* pool_tiny_get(uint8_t v) {
+        inline note_t* getValue(uint8_t v) {
             uint8_t count = 0;
 
             while (count < POOL_TINY_SIZE) {
-                if ( notes[count].note == v) {
-                    if (POOL_TINY_IS_FULL(count)) {
+                if (POOL_TINY_IS_FULL(count)) {
+                    if ( notes[count].note == v) {
                         return &notes[count];
                     }
                 }
@@ -77,15 +97,20 @@ class NotePoolTiny {
             return 0;
         }
 
-        inline note_t* pool_tiny_get_all() {
-            uint8_t count = 0;
+        inline note_t* getIterate() {
 
-            while (count < POOL_TINY_SIZE) {
-                if (POOL_TINY_IS_FULL(count)) {
-                    return &notes[count];
-                }
-                count++;
+            if (index == POOL_TINY_SIZE) {
+                index = 0;
+                return 0;
             }
+
+            while (index < POOL_TINY_SIZE) {
+                if (POOL_TINY_IS_FULL(index)) {
+                    return &notes[index++];
+                }
+                index++;
+            }
+            index=0;
             return 0;
         }
 
@@ -93,6 +118,7 @@ class NotePoolTiny {
 
         note_t notes[POOL_TINY_SIZE];
         uint8_t empty_state;
+        uint8_t index;
 };
 
 

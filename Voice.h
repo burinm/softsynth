@@ -47,9 +47,12 @@ class Voice {
         inline void startNote(uint8_t midinote) {
             #ifdef POLYPHONY
                 note_t *temp_note;
-                temp_note = note_pool.pool_tiny_add(midinote);
+                temp_note = note_pool.addValue(midinote);
                 if (temp_note) {
+//fprintf(stderr,"(+%d)",temp_note->note);
                     temp_note->envelope.start(adsr_reset);
+                } else {
+fprintf(stderr,"(+bork couldn't add note:%d,0x%x!)",midinote,temp_note);
                 }
             #else
                 current_note.note = midinote;
@@ -62,8 +65,15 @@ class Voice {
         inline void stopNote(uint8_t midinote) {
             #ifdef POLYPHONY
                 note_t *temp_note;
-                temp_note = note_pool.pool_tiny_get(midinote);
-                temp_note->envelope.setState(ADSR_RELEASE);
+                temp_note = note_pool.getValue(midinote);
+                if(temp_note) {
+                    temp_note->envelope.setState(ADSR_RELEASE);
+//fprintf(stderr,"(!%d)",temp_note->note);
+                } else {
+//This is o.k, because a note's ADSR can expire before the MIDI_OFF message comes
+//fprintf(stderr,"(!bork couldn't find note:%d, 0x%x!)",midinote,temp_note);
+                }
+
 
             #else
                 current_note.envelope.setState(ADSR_RELEASE);
@@ -82,17 +92,26 @@ class Voice {
                     uint16_t total_sample=0;
 
 
-                    while( (n_note = note_pool.pool_tiny_get_all()) ) {
+                    while( (n_note = note_pool.getIterate()) != 0 )  {
+        //fprintf(stderr,"(p->0x%x)",n_note);
 
                         if (n_note->envelope.getState() == ADSR_OFF ) {
+        //fprintf(stderr,"(-%d)",n_note->note);
+                            uint8_t delete_count;
+                            if ( (delete_count = note_pool.removeValue(n_note->note)) ==0 ) {
+                                fprintf(stderr,"(BORK couldn't remove-%d)",n_note->note);
+                            }
+        //fprintf(stderr,"(removed n%d,%d)",delete_count,n_note->note);
                             continue; 
                         }
-                        n_note->envelope.step(adsr_reset);
-                            phase = t * note_phase_mult_table[n_note->note];
+        //fprintf(stderr,"(p%d)",n_note->note);
 
-                            //TODO: Probably should apply envelope at the end - save cycles
-                            total_sample += (uint8_t)n_note->envelope.apply_envelope(wave_function(phase));
-                            //total_sample += wave_function(phase);
+        //fprintf(stderr,"(t=%d)",t);
+                        phase = t * note_phase_mult_table[n_note->note];
+
+                        n_note->envelope.step(adsr_reset);
+                        total_sample += (uint8_t)n_note->envelope.apply_envelope(wave_function(phase));
+                        //total_sample += wave_function(phase);
                     }
                     return total_sample;
                 #else
@@ -103,6 +122,7 @@ class Voice {
                     if (current_note.envelope.getState() == ADSR_OFF ) {
                      return 0;
                     }
+        //fprintf(stderr,"(t=%d)",t);
                     // Automatic 16bit rollover (i.e. phase % PARTS_PER_CYCLE)
                     phase = t * note_phase_mult_table[current_note.note];  //2.4us per voice
 
