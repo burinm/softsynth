@@ -73,3 +73,16 @@ Currently there are 3 ways to compile:
     make -f Makefile.make FASTVOICE=y clean
     make -f Makefile.make FASTVOICE=y 
     make -f Makefile.make FASTVOICE=y upload 
+
+Development environment, Linux custom tool chain:
+
+    binutils 2.29.1 with avr-size patch
+    gcc-7.2.0
+    libc-2.0.0
+    gdb-8.0.1
+    avrdude-6.3
+
+Although there is nothing special about the code the
+standard avr-gcc compilers with 16.04 ubuntu should
+work just fine.
+
