@@ -127,6 +127,13 @@ cli();
     TCCR0A = 0;
     TCCR0B = 0;
 
+    /*
+        Never let the timer in CTC mode
+         reach TOP, keep resetting.
+        Then trigger TOP by setting
+         TCNT0 above OCR0A (COMPA) elsewhere
+         is the code.
+    */
     OCR0A = DRUM_DECAY - 1; //Set below so we never reach TOP
 
     // Set prescaler, timer on
@@ -139,13 +146,14 @@ cli();
 #elif DRUM_TIMER_DIV == 256
     TCCR0B |= (1 << CS02); // 256 untested
 #elif DRUM_TIMER_DIV == 1024
-    TCCR0B |= ((1 << CS02) | (1 << CS00)); // 1024 untested
+    TCCR0B |= ((1 << CS02) | (1 << CS00)); // divide 1024
 #else
     #error "DRUM_TIMER_DIV value not supported for this platform/implementation"
 #endif
 
     TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
-    TIMSK0 |= (1 << OCIE0A) |  (1 << TOIE0); //enable timer compare/top interrupts
+    //TIMSK0 |= (1 << OCIE0A) |  (1 << TOIE0); //enable timer compare/top interrupts
+    TIMSK0 |=   (1 << TOIE0); //enable timer compare/top interrupts
 #endif
 
 
@@ -269,24 +277,13 @@ setup();
 }
 
 #ifdef FASTVOICE
-    ISR(TIMER0_COMPA_vect) {
-        /*
-            Never let the timer in CTC mode
-             reach TOP, keep resetting.
-            Then trigger TOP by setting
-             TCNT0 above COMPA elsewhere
-             is the code.
-        */
-        TCNT0=0;
-    }
-
     ISR(TIMER0_OVF_vect) {
         /*
             Naive implementation for speed,
              really should loop through all voices
              for each, if V->is_drum then V->drum off
         */
-        voices[2].drum_on=0;
+        voices[2].drum_on = 0;
     }
 #endif
 

@@ -21,7 +21,9 @@ extern const uint16_t note_phase_mult_table[128];
 namespace SoftSynth {
 
 #define POOL_MAX    8
-#define DRUM_DECAY  51 //Timer0 counts up from 51->TOP(0xff)
+
+//Timer0 counts up from 51->TOP(0xff), 1588us
+#define DRUM_DECAY  51
 
 class VoiceFast {
     public:
