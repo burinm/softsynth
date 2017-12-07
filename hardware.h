@@ -11,7 +11,9 @@ Synth timer (samples) will need 363 machine ticks
 
 
 #define CPU_SPEED           16000000
-//#define SAMPLE_TIMER_DIV    8
+//#define SAMPLE_TIMER_DIV   256
+
+#define DRUM_TIMER_DIV  1024
 
 
 #define SAMPLE_RATE 62500

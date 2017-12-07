@@ -92,9 +92,10 @@ sei();
     PORTB = 0x0;
 
 #ifdef FASTVOICE
-    voices[0].init(t_pulse);
+    voices[0].init(t_sin);
     voices[1].init(t_pulse);
-    voices[2].init(t_triangle);
+    voices[2].init(t_noise); voices[2].setDrum();
+    voices[3].init(t_triangle);
     //voices[0].init(t_triangle);
 #else
     /* Initalize Voices */
@@ -120,56 +121,46 @@ sei();
 //Interrupts off to setup timers
 cli();
 
-#if 0
-// Timer 0, for Sample Loop
-    //Defaults for timer0 registers
+#ifdef FASTVOICE
+// Timer 0, for Drum decay
+    //Defaults for timer0 register
     TCCR0A = 0;
     TCCR0B = 0;
 
-    //OCR0A = ((CPU_SPEED/8)/SAMPLE_RATE) +1;
-    OCR0A = ((CPU_SPEED/SAMPLE_TIMER_DIV)/SAMPLE_RATE);
-    //OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE) +1;
-    //OCR0A = ((CPU_SPEED/64)/SAMPLE_RATE);
-    OCR0B =0;
+    OCR0A = DRUM_DECAY - 1; //Set below so we never reach TOP
 
     // Set prescaler, timer on
-#if SAMPLE_TIMER_DIV == 1
+#if DRUM_TIMER_DIV == 1
     TCCR0B |= (1 << CS00); // timer on, no prescale 
-#elif SAMPLE_TIMER_DIV == 8
+#elif DRUM_TIMER_DIV == 8
     TCCR0B |= (1 << CS01); // divide 8 prescale
-#elif SAMPLE_TIMER_DIV == 64
+#elif DRUM_TIMER_DIV == 64
     TCCR0B |= ( (1 << CS00) | (1 << CS01)); // divide 64 prescale
-#elif SAMPLE_TIMER_DIV == 256
+#elif DRUM_TIMER_DIV == 256
     TCCR0B |= (1 << CS02); // 256 untested
-#elif SAMPLE_TIMER_DIV == 1024
+#elif DRUM_TIMER_DIV == 1024
     TCCR0B |= ((1 << CS02) | (1 << CS00)); // 1024 untested
 #else
-    #error "SAMPLE_TIMER_DIV value not supported for this platform/implementation"
+    #error "DRUM_TIMER_DIV value not supported for this platform/implementation"
 #endif
 
     TCCR0A |= (1 << WGM01); //CTC mode, top is OCR0A
-    //TIMSK0 |= (1 << OCIE0A); //enable timer compare interrupt
+    TIMSK0 |= (1 << OCIE0A) |  (1 << TOIE0); //enable timer compare/top interrupts
 #endif
 
 
-// Timer 1, 16bit timer, overflow for Tone Clock
+// Timer 1, 16bit timer, read to calculate phase
     //Defaults for timer1 registers
     TCCR1A = 0;
     TCCR1B = 0;
 
     //Timer will run 62500Mz:
     OCR1A = 0; //Full 16 bits
-    //TCCR1B |= (1 << CS10) | (1 << CS11);      // divide 64 prescale
     TCCR1B |= (1 << CS12);                    // divide 256 prescale
-    //TCCR1B |= (1<<CS10) | (1 << CS12);        // divide 1024 prescale
 
-    //OCR1A = (CPU_SPEED/SAMPLE_RATE); //Full 16 bits
-    //TCCR1B |= (1 << WGM12); //CTC mode, top is OCR1A
-    //TCCR1B |= (1 << CS10);    // no prescaler, enabled
-    //TIMSK1 |= (1 << OCIE1A); //enable timer compare interrupt
+    #define BAUD_MIDI    31250 //MIDI specification
+    #define BAUD_LINUX   38400 //Standard serial port speed on an x86 machine
 
-    #define BAUD_MIDI    31250
-    #define BAUD_LINUX   38400 
     //Setup serial port - USART UART
     #define FOSC    16000000
     #define BAUD    BAUD_LINUX
@@ -277,17 +268,25 @@ setup();
     }
 }
 
-#if 0
-ISR(USART_RX_vect) {
-volatile uint8_t b;
-
-    if (UCSR0A & (1<<RXC0)) {
-        b = (uint8_t)UDR0;
-        /* Critial section, but on Atmel328p, interrupt handler is safe */
-        if (circbuf_tiny_write(&midi_buf,b) == 0) {
-            ERROR_SET(ERROR_OVERFLOW);
-        }
-        /* end critical */
+#ifdef FASTVOICE
+    ISR(TIMER0_COMPA_vect) {
+        /*
+            Never let the timer in CTC mode
+             reach TOP, keep resetting.
+            Then trigger TOP by setting
+             TCNT0 above COMPA elsewhere
+             is the code.
+        */
+        TCNT0=0;
     }
-}
+
+    ISR(TIMER0_OVF_vect) {
+        /*
+            Naive implementation for speed,
+             really should loop through all voices
+             for each, if V->is_drum then V->drum off
+        */
+        voices[2].drum_on=0;
+    }
 #endif
+

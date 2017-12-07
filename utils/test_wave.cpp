@@ -49,7 +49,8 @@ wave_function=t_sin;
         //for(uint32_t i=0; i< (1<<16); i+=5000 ) { //t_noise test
         //for(uint16_t i=0; i<17000; i++ ) {
             //e.step();
-            amplitude = e.apply_envelope(wave_function(i));
+            //amplitude = e.apply_envelope(wave_function(i));
+            amplitude = (wave_function(i));
             //printf("%d %d\n",counter,wave_function(i));
             printf("%d %d\n",counter,amplitude);
             //printf("%d %d %d\n",counter,wave_function(i),amplitude);
