@@ -2,7 +2,7 @@
 
 An 8-bit synthesizer based on the atmega328p AVR
 
-##Features:
+## Features:
     Basic MIDI - note on/off.
 ```
     Voices implemented as objects. Instantiate as many as the AVR speed will allow.
@@ -13,7 +13,7 @@ An 8-bit synthesizer based on the atmega328p AVR
 ```
     Sine, Pulse, Sawtooth, Triangle and Noise waveforms.
 ```
-##Options
+## Options
     Polyphony/Envelope features enable/disable #defines because we are at the limit of CPU resources.
 ```
 
