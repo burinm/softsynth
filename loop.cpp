@@ -19,13 +19,14 @@
     5) - voice pools
     6) - noise channel is slow at high frequencies
     7) - Midi command (start note, <0x79, note_off velocity) broken?
+    8) - FastVoice drum - 1st note too short?, if held down subsequent notes long 
 
 */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include <avr/wdt.h> //wdt_disable, wdt_reset
+//#include <avr/wdt.h> //wdt_disable, wdt_reset
 #include <avr/sleep.h>
 
 extern "C" {
@@ -63,7 +64,8 @@ void setup() {
 
 cli();
     // From Atmega328p datasheet, disable watchdog
-    wdt_reset();
+    __asm__ __volatile__ ("wdr");
+    //wdt_reset();
     /* Clear WDRF in MCUSR */
     MCUSR &= ~(1<<WDRF);
     /* Write logical one to WDCE and WDE */
@@ -96,6 +98,7 @@ sei();
     voices[1].init(t_pulse);
     voices[2].init(t_noise); voices[2].setDrum();
     voices[3].init(t_triangle);
+    voices[4].init(t_sawtooth);
     //voices[0].init(t_triangle);
 #else
     /* Initalize Voices */

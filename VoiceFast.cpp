@@ -9,13 +9,14 @@
 #include <stdio.h> //Remove after debug
 
 #include <avr/io.h> //TCNT0
+#include <avr/interrupt.h>
 
 extern "C" {
     #include "wave_function.h"
 }
 
 
-#define MAX_VOICES 4
+#define MAX_VOICES 5
 extern const uint16_t note_phase_mult_table[128];
 
 namespace SoftSynth {
@@ -31,6 +32,7 @@ class VoiceFast {
         void init(uint8_t (*f)(uint16_t)) {
             is_drum = 0;
             drum_on = 0;
+            last_note_index = 0;
 
             wave_function = f;
 
@@ -50,17 +52,19 @@ class VoiceFast {
         }
 
         inline void setDrumExpire() {
+             cli();
                 drum_on = 1;
                 TCNT0 = 51;
+             sei();
         }
 
         inline void startNote(uint8_t midinote) {
             if(is_drum) {
+                random_reset();
                 setDrumExpire();
             }
 
             addNote(midinote);
-            random_reset();
         }
 
         inline void stopNote(uint8_t midinote) {
@@ -80,6 +84,7 @@ class VoiceFast {
             for (uint8_t i=0;i<POOL_MAX;i++) {
                 if (note_pool[i] == 0) {
                     note_pool[i] = midinote;
+                    last_note_index = i;
                     break;
                 }
             }
@@ -102,7 +107,15 @@ class VoiceFast {
             static uint16_t phase;
             uint16_t total=0;
 
-            if (is_drum && (drum_on == 0)) { return 0; }
+            if (is_drum) {
+                if (drum_on == 1) {
+                    phase = t * note_phase_mult_table[note_pool[last_note_index]];
+                    total +=(uint8_t)(wave_function(phase));
+                    return total;
+                } else {
+                    return 0;
+                }
+            }
 
             for (uint8_t i=0;i<POOL_MAX;i++) {
                 if ( note_pool[i] !=0 ) {
@@ -114,7 +127,8 @@ class VoiceFast {
         }
 
         uint8_t is_drum;
-        uint8_t drum_on;
+        volatile uint8_t drum_on;
+        uint8_t last_note_index;
     private:
         uint8_t (*wave_function)(uint16_t);
         uint8_t note_pool[POOL_MAX];
