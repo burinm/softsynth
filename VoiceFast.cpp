@@ -23,8 +23,8 @@ namespace SoftSynth {
 
 #define POOL_MAX    8
 
-//Timer0 counts up from 51->TOP(0xff), 1588us
-#define DRUM_DECAY  51
+//Timer0 counts up from DRUM_DECAY->TOP(0xff)
+#define DRUM_DECAY 20 // (256 - 20) * 1/(16MHz/1024) = 15ms
 
 class VoiceFast {
     public:
@@ -54,7 +54,7 @@ class VoiceFast {
         inline void setDrumExpire() {
              cli();
                 drum_on = 1;
-                TCNT0 = 51;
+                TCNT0 = DRUM_DECAY;
              sei();
         }
 

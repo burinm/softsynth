@@ -131,11 +131,13 @@ cli();
     TCCR0B = 0;
 
     /*
-        Never let the timer in CTC mode
-         reach TOP, keep resetting.
-        Then trigger TOP by setting
-         TCNT0 above OCR0A (COMPA) elsewhere
-         is the code.
+        Never let the timer in CTC mode reach TOP,
+            keep resetting at match (COMPA) DRUM_DECAY - 1.
+
+        Then trigger TOP by setting TCNT0 above OCR0A
+            (COMPA) elsewhere in the code.
+
+        This is a way of implementing a one-shot
     */
     OCR0A = DRUM_DECAY - 1; //Set below so we never reach TOP
 
