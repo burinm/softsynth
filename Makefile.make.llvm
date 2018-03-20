@@ -1,0 +1,88 @@
+
+#CC := /usr/bin/avr-gcc
+#CXX := /usr/bin/avr-g++
+SIZE := /opt/avr-tools/bin/avr-size
+OBJCOPY := /opt/avr-tools/bin/avr-objcopy
+
+
+
+CC := /usr/local/bin/clang 
+CXX := /usr/local/bin/clang++ 
+#LD := /usr/local/bin/clang
+LD := /opt/avr-tools/bin/avr-ld 
+
+AVRDUDE := /usr/local/bin/avrdude
+
+INCLUDES := -I/opt/avr-tools/avr/include
+CFLAGS += $(INCLUDES)
+
+COMPILER_ARCH_SPECIFIC_GCC := -mmcu=atmega328p
+COMPILER_ARCH_SPECIFIC_CLANG := --target=avr -mmcu=atmega328p 
+
+OPTIMIZATIONS := -Os -flto
+
+CFLAGS += $(COMPILER_ARCH_SPECIFIC_CLANG)
+CFLAGS += $(OPTIMIZATIONS) -DF_CPU=16000000UL
+CFLAGS += -pedantic -Wall -Wextra
+
+CXXFLAGS := $(CFLAGS) -std=gnu++14
+CFLAGS += -std=gnu11
+
+
+
+LDFLAGS += -Wl,--gc-sections -B/opt/avr-tools/avr/bin
+#-B/usr/lib/gold-ld
+#when invoking avr-gcc -fuse-linker-plugin
+#LDFLAGS += -flto-report
+#LDLIBS += -lc
+LDPLUGIN := -Wl,-plugin=/home/burin/build/lib/LLVMgold.so
+
+
+
+SOURCES := loop.cpp Voice.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c
+OBJS := $(patsubst %.cpp,%.o, $(patsubst %.c,%.o, $(SOURCES)) )
+OBJDIR := ./objs-make
+
+DEPS := $(patsubst %.cpp,%.d, $(patsubst %.c,%.d, $(SOURCES)) )
+
+all: softsynth.elf size softsynth.eep softsynth.hex
+
+softsynth.elf: $(addprefix $(OBJDIR)/, $(OBJS)) 
+	/usr/local/bin/clang $(LDPLUGIN) -o $@ $(COMPILER_ARCH_SPECIFIC_CLANG) $(OPTIMIZATIONS) $(LDFLAGS) $^ $(LDLIBS)
+
+$(OBJDIR)/%.o: %.c
+	$(CC) -c -o $@ $(CFLAGS) $<
+
+$(OBJDIR)/%.o: %.cpp
+	$(CXX) -c -o $@ $(CXXFLAGS) $<
+
+#Header file dependencies, copied from GNU manual - Automatic-Prerequisites
+%.d: %.c
+	@set -e; rm -f $@; \
+$(CC) -M $(CFLAGS) $< > $@.$$$$; \
+sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+rm -f $@.$$$$
+
+%.d: %.cpp
+	@set -e; rm -f $@; \
+$(CXX) -M $(CXXFLAGS) $< > $@.$$$$; \
+sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+rm -f $@.$$$$
+
+size: softsynth.elf
+	$(SIZE) --target=elf32-avr $<
+
+softsynth.eep: softsynth.elf
+	$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom='alloc,load' --no-change-warnings --change-section-lma .eeprom=0 -O ihex $<  $@
+
+softsynth.hex: softsynth.elf
+	$(OBJCOPY) -O ihex -R .eeprom  $< $@
+
+clean:
+	rm -f softsynth.elf softsynth.eep softsynth.hex *.d
+	cd $(OBJDIR) && rm -f *.o *.d
+
+upload: softsynth.hex
+	$(AVRDUDE) -q -V -p atmega328p -C /usr/local/etc/avrdude.conf -D -c arduino -b 115200 -P /dev/ttyACM0 -U flash:w:softsynth.hex:i
+
+-include $(DEPS)

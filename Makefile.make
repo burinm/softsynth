@@ -8,11 +8,12 @@ AVRDUDE := avrdude
 
 NATIVE_GCC := gcc
 
-SOURCES := loop.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c NotePoolTiny.cpp VoiceFast.cpp voice_notes.c
+SOURCES := loop.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c NotePoolTiny.cpp voice_notes.c
 HEADERS := circbuf_tiny.h debug.h Envelope.h hardware.h instruments.h midi.h Voice.h wave_function.h NotePoolTiny.cpp VoiceFast.cpp
 
 ifeq ($(FASTVOICE),y)
     CFLAGS += -DFASTVOICE
+    SOURCES += VoiceFast.cpp
 else
     SOURCES += Voice.cpp
 endif
@@ -34,7 +35,7 @@ LDLIBS += -lc
 
 
 OBJS := $(patsubst %.cpp,%.o, $(patsubst %.c,%.o, $(SOURCES)) )
-OBJS += avr.o
+#OBJS += avr.o
 OBJDIR := ./objs-make
 
 
@@ -77,7 +78,7 @@ sin_table.h: ./utils/sin_generate.c header_deps
 clean:
 	rm -f softsynth.elf softsynth.eep softsynth.hex header_deps voice_notes.c sin_table.h
 	rm -f ./utils/bin/sin ./utils/bin/notes
-	cd $(OBJDIR) && rm -f *.o
+	cd $(OBJDIR) && rm -f *.o *.ll
 
 upload: softsynth.hex size
 	$(AVRDUDE) -q -V -p atmega328p -C $(AVR_TOOLS_PATH)/etc/avrdude.conf -D -c arduino -b 115200 -P /dev/ttyACM0 -U flash:w:softsynth.hex:i

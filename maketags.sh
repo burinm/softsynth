@@ -12,5 +12,5 @@ find ${ARDUINO_SDK}/hardware/tools/avr/avr/include/avr/io.h >> cscope.files
 find ${ARDUINO_SDK}/hardware/tools/avr/avr/include/avr/iom328p.h >> cscope.files
 
 cscope -b
-ctags -L ./cscope.files
+/home/burin/ctags-u/bin/ctags -L ./cscope.files
 cscope

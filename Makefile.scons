@@ -1,11 +1,38 @@
+#sudo apt-get install gcc-avr binutils-avr avr-libc
 env = DefaultEnvironment()
-env['CC'] = '/usr/bin/avr-gcc'
-env['CXX'] = '/usr/bin/avr-g++'
-env['CXXFLAGS'] = '-DF_CPU=16000000UL -mmcu=atmega328p'
-env['CPPPATH'] = '-I/home/burin/arduino/hardware/arduino/avr/cores/arduino'
+
+#Custom commands
+size = Builder(action = '/usr/bin/avr-size --mcu=atmega328p -C --format=avr $TARGET')
+
+env.Append(BUILDERS = {'Size' : size})
+
+#avr-gcc
+#env['CC'] = '/usr/bin/avr-gcc'
+#env['CXX'] = '/usr/bin/avr-g++'
+#env['CXXFLAGS'] = '-Os -flto -DF_CPU=16000000UL -mmcu=atmega328p -Wl,--gc-sections'
+#env['CPPPATH'] = '/home/burin/arduino/hardware/arduino/avr/cores/arduino'
+
+#clang
+env['CC'] = '/usr/local/bin/clang'
+env['CXX'] = '/usr/local/bin/clang++'
+#env['LINK'] = '/usr/bin/avr-ld'
+env['LINK'] = '/usr/bin/avr-gcc'
+
+#env['CXXFLAGS'] = '--target=avr -mmcu=atmega328p -Os -flto -DF_CPU=16000000UL -D__AVR_ATmega328P__'
+#env['CXXFLAGS'] = '--target=avr -mmcu=atmega328p  -D__AVR_SFR_OFFSET__=0x20'
+env['CCFLAGS'] = '--target=avr -mmcu=atmega328p -Os'
+#-integrated-as
+#env['CPPPATH'] = '/home/burin/arduino/hardware/tools/avr/avr/include/'
+env['CPPPATH'] = '/usr/lib/avr/include'
+
+#env['LINKFLAGS'] = '--gc-sections'
+#env['LINKFLAGS'] = '-lc'
 
 env.VariantDir('./obj', '.', duplicate= False)
 
 src_files = Split('loop.cpp Voice.cpp Envelope.cpp midi.cpp wave_function.c circbuf_tiny.c')
 
-env.Program(source = src_files, target = 'softsynth.elf')
+env.Program(source = src_files, target = 'softsynth.elf', LIBS = 'c')
+#env.Program(source = 'softsynth.elf', target = 'softsynth.image', LIBS = 'lc')
+env.Size('softsynth.elf')
+
