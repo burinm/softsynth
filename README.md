@@ -1,6 +1,6 @@
 # softsynth
 
-An 8-bit synthesizer based on the atmega328p AVR
+An 8-bit synthesizer based on the atmega328p AVR [Demo](https://vimeo.com/261564278)
 
 ## Features:
 * Basic MIDI - note on/off.
