@@ -82,3 +82,7 @@ clean:
 
 upload: softsynth.hex size
 	$(AVRDUDE) -q -V -p atmega328p -C $(AVR_TOOLS_PATH)/etc/avrdude.conf -D -c arduino -b 115200 -P /dev/ttyACM0 -U flash:w:softsynth.hex:i
+
+dumpflash:
+	echo $(AVRDUDE) -V -p atmega328p -C $(AVR_TOOLS_PATH)/etc/avrdude.conf -D -c arduino -b 115200 -P /dev/ttyACM0 -U flash:r:flash.bin:r
+	$(AVRDUDE) -V -p atmega328p -C $(AVR_TOOLS_PATH)/etc/avrdude.conf -D -c arduino -b 115200 -P /dev/ttyACM0 -U flash:r:flash.bin:r

@@ -26,6 +26,9 @@ namespace SoftSynth {
 //Timer0 counts up from DRUM_DECAY->TOP(0xff)
 #define DRUM_DECAY 20 // (256 - 20) * 1/(16MHz/1024) = 15ms
 
+//Possibly the correct one, last used
+//#define DRUM_DECAY 51 // (256 - 20) * 1/(16MHz/1024) = 15ms
+
 class VoiceFast {
     public:
 
